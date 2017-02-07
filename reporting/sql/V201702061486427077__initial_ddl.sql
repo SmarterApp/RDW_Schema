@@ -4,7 +4,7 @@
 **
 **  NOTES
 **  This schema assumes the following:
-**     1. one state (aka tenant) per data warehouse
+**     1. one state (aka tenant) per reporting database
 **     2. not all data elements from TRT are included, only those that are required for the current reporting
 **/
 
