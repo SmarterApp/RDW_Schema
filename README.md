@@ -13,9 +13,9 @@ There are multiple databases: a data warehouse and data mart(s). Each has a corr
 flyway -configFile=flyway.properties migrate
 ```
 
-## To wipe oout the database
+## To wipe out the database
 ```bash
-flyway -configFile=flyway.properties cleanup
+flyway -configFile=flyway.properties clean
 ```
 
 ### Developing
