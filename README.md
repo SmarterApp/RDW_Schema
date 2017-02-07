@@ -8,7 +8,7 @@ brew install flyway
 ```
 
 ### To install
-There are multiple databases: a data warehouse and data mart(s). Each has a corresponding folder. To install, go to a corresponding folder and run:
+There are multiple schemas: a data warehouse and data mart(s). Each has a corresponding folder. To install, go to a corresponding folder and run:
 ```bash
 flyway -configFile=flyway.properties migrate
 ```
