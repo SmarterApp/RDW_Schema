@@ -19,11 +19,9 @@ flyway -configFile=flyway.properties clean
 ```
 
 ### Developing
-Flyway requires prefixing each script with the version. To avoid a prefix collision user timestamp for a prefix. This project uses the following pattern:yyyyMMddHHmmssSSS
-To get timestamp on MacOS:
-
+Flyway requires prefixing each script with the version. To avoid a prefix collision use a timestamp for a prefix. This project uses the following pattern:yyyyMMddHHmmss. To get timestamp on MacOS:
 ```bash
-date +'%Y%m%d%s%S'
+date +'%Y%m%d%s'
 ```
 
 Flyway configurations can be found in the _flyway.properties_ file. 
