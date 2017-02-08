@@ -1,4 +1,3 @@
-
 /**
 ** 	Initial script for the SBAC Reportind Data Warehouse schema
 **
@@ -160,8 +159,10 @@ CREATE TABLE IF NOT EXISTS roster (
   school_id mediumint, 
   name varchar(255) NOT NULL UNIQUE, 
   exam_from date, 
-  exam_to date NOT NULL, 
-  CONSTRAINT fk__roster__school FOREIGN KEY (school_id) REFERENCES school(id)
+  exam_to date NOT NULL,
+  subject_id tinyint,
+  CONSTRAINT fk__roster__school FOREIGN KEY (school_id) REFERENCES school(id),
+  CONSTRAINT fk__roster__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
 );
 
 CREATE TABLE IF NOT EXISTS roster_membership (
@@ -201,7 +202,7 @@ CREATE TABLE IF NOT EXISTS iab_exam (
   status varchar(50) NOT NULL, 
   validity tinyint(1) NOT NULL, 
   completeness varchar(8) NOT NULL, 
-  administration_condition varchar(20), 
+  administration_condition_id tinyint NOT NULL,
   session_id varchar(128) NULL, 
   claim_id smallint NOT NULL, 
   claim_scale_score float NOT NULL, 
@@ -211,7 +212,8 @@ CREATE TABLE IF NOT EXISTS iab_exam (
   CONSTRAINT fk__iab_exam__iab_exam_student FOREIGN KEY (iab_exam_student_id) REFERENCES iab_exam_student(id),
   CONSTRAINT fk__iab_exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
   CONSTRAINT fk__iab_exam__claim FOREIGN KEY (claim_id) REFERENCES claim(id),
-  CONSTRAINT fk__iab_exam__exam_location FOREIGN KEY (asmt_session_location_id) REFERENCES asmt_session_location(id)
+  CONSTRAINT fk__iab_exam__exam_location FOREIGN KEY (asmt_session_location_id) REFERENCES asmt_session_location(id),
+  CONSTRAINT fk__iab_exam__administration_condition FOREIGN KEY (administration_condition_id) REFERENCES administration_condition(id)
 );
 
 CREATE TABLE IF NOT EXISTS iab_exam_item (
@@ -239,10 +241,10 @@ CREATE TABLE IF NOT EXISTS exam_student (
   grade_id tinyint NOT NULL, 
   student_id bigint NOT NULL, 
   school_id mediumint NOT NULL, 
-  iep tinyint NOT NULL, 
-  lep tinyint NOT NULL, 
-  section504 tinyint NOT NULL, 
-  economic_disadvantage tinyint NOT NULL, 
+  iep tinyint,
+  lep tinyint,
+  section504 tinyint,
+  economic_disadvantage tinyint,
   migrant_status tinyint, 
   eng_prof_lvl varchar(20), 
   t3_program_type varchar(20), 
@@ -262,7 +264,7 @@ CREATE TABLE IF NOT EXISTS exam (
   status varchar(50) NOT NULL, 
   validity tinyint(1) NOT NULL, 
   completeness varchar(8) NOT NULL, 
-  administration_condition varchar(20), 
+  administration_condition_id tinyint NOT NULL,
   session_id varchar(128) NULL, 
   scale_score float NOT NULL, 
   scale_score_std_err float NOT NULL, 
@@ -270,7 +272,8 @@ CREATE TABLE IF NOT EXISTS exam (
   asmt_session_location_id mediumint, 
   CONSTRAINT fk__exam__exam_student FOREIGN KEY (exam_student_id) REFERENCES exam_student(id),
   CONSTRAINT fk__exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
-  CONSTRAINT fk__exam__exam_location FOREIGN KEY (asmt_session_location_id) REFERENCES asmt_session_location(id)
+  CONSTRAINT fk__exam__exam_location FOREIGN KEY (asmt_session_location_id) REFERENCES asmt_session_location(id),
+  CONSTRAINT fk__exam__administration_condition FOREIGN KEY (administration_condition_id) REFERENCES administration_condition(id)
 );
 
 CREATE TABLE IF NOT EXISTS exam_item (
