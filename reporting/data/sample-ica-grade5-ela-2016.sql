@@ -65,13 +65,13 @@ INSERT INTO item (id, claim_id, target_id, item_key, bank_key) VALUES
   (54683, 4, null, 54683, '200');
 
 -- NOTE: ETS samples with anonymized data do not have names for school and district
-INSERT INTO district (id, name, natural_id) VALUES
+INSERT IGNORE INTO district (id, name, natural_id) VALUES
   (1, 'Sample District 1', '01247430000000');
 
-INSERT INTO school (id, district_id, name, natural_id) VALUES
+INSERT IGNORE INTO school (id, district_id, name, natural_id) VALUES
   (1, 1, 'Sample School 1', '30664640124743');
 
-INSERT INTO state (code) VALUES
+INSERT IGNORE INTO state (code) VALUES
   ('SM');
 
 INSERT INTO student (id, ssid, last_or_surname, first_name, middle_name, gender_id, ethnicity_id, first_entry_into_us_school_at, lep_entry_at, lep_exit_at, is_demo, birthday) VALUES
@@ -82,6 +82,9 @@ INSERT INTO roster (id, created_by, school_id, name, exam_from, exam_to, subject
 
 INSERT INTO roster_membership (roster_id, student_id) VALUES
   (1, 1);
+
+INSERT INTO user_roster (roster_id, user_login) VALUES
+  (1, 'dwtest@example.com');
 
 INSERT INTO exam_student (id, grade_id, student_id, school_id, iep, lep, section504, economic_disadvantage, migrant_status, eng_prof_lvl, t3_program_type, language_code, prim_disability_type) VALUES
   (1, 5, 1, 1, null, null, null, null, null, 'EO', null,'ENG', null);
@@ -104,38 +107,36 @@ INSERT INTO exam_item (exam_id, item_id, score, score_status, response) VALUES
   (1, 59217, 1, 'SCORED', 'D'),
   (1, 30901, 1, 'SCORED', 'C'),
   (1, 30899, 1, 'SCORED', 'B'),
-  -- TODO: need to figure out how to handle this type of the responses. It is a question with two parts
-  (1, 30891, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="EBSR1"&gt;&lt;value&gt;A&lt;/value&gt;&lt;/response&gt;&lt;response id="EBSR2"&gt;&lt;value&gt;D&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
+  (1, 30891, 1, 'SCORED', '<itemResponse><response id="EBSR1"><value>A</value></response><response id="EBSR2"><value>D</value></response></itemResponse>'),
   (1, 32604, 1, 'SCORED', 'C'),
   (1, 58465, 1, 'SCORED', 'C,E'),
   (1, 43427, 1, 'SCORED', 'A'),
   (1, 43440, 1, 'SCORED', 'A'),
-  (1, 54097, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="1"&gt;&lt;value&gt;3&lt;/value&gt;&lt;value&gt;5&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
-  (1, 58401, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="EBSR1"&gt;&lt;value&gt;C&lt;/value&gt;&lt;/response&gt;&lt;response id="EBSR2"&gt;&lt;value&gt;A&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
+  (1, 54097, 1, 'SCORED', '<itemResponse><response id="1"><value>3</value><value>5</value></response></itemResponse>'),
+  (1, 58401, 1, 'SCORED', '<itemResponse><response id="EBSR1"><value>C</value></response><response id="EBSR2"><value>A</value></response></itemResponse>'),
   (1, 43423, 1, 'SCORED', 'E, F'),
   (1, 41656, 1, 'SCORED', 'C'),
-  (1, 35901, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="EBSR1"&gt;&lt;value&gt;B&lt;/value&gt;&lt;/response&gt;&lt;response id="EBSR2"&gt;&lt;value&gt;A&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
+  (1, 35901, 1, 'SCORED', '<itemResponse><response id="EBSR1"><value>B</value></response><response id="EBSR2"><value>A</value></response></itemResponse>'),
   (1, 35903, 1, 'SCORED', 'C'),
-  (1, 35905, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="RESPONSE"&gt;&lt;value&gt;1 a&lt;/value&gt;&lt;value&gt;2 b&lt;/value&gt;&lt;value&gt;3 b&lt;/value&gt;&lt;value&gt;4 b&lt;/value&gt;&lt;value&gt;5 a&lt;/value&gt;&lt;value&gt;6 a&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
+  (1, 35905, 1, 'SCORED', '<itemResponse><response id="RESPONSE"><value>1 a</value><value>2 b</value><value>3 b</value><value>4 b</value><value>5 a</value><value>6 a</value></response></itemResponse>'),
   (1, 63424, 1, 'SCORED', 'B'),
   (1, 30153, 1, 'SCORED', 'B'),
   (1, 26487, 0, 'SCORED', 'D'),
-  (1, 27817, 0, 'SCORED', '&lt;itemResponse&gt;&lt;response id="1"&gt;&lt;value&gt;3&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt'),
-  (1, 26485, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="EBSR1"&gt;&lt;value&gt;C&lt;/value&gt;&lt;/response&gt;&lt;response id="EBSR2"&gt;&lt;value&gt;C&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
-  (1, 26475, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="1"&gt;&lt;value&gt;1&lt;/value&gt;&lt;value&gt;2&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
+  (1, 27817, 0, 'SCORED', '<itemResponse><response id="1"><value>3</value></response></itemResponse>'),
+  (1, 26485, 1, 'SCORED', '<itemResponse><response id="EBSR1"><value>C</value></response><response id="EBSR2"><value>C</value></response></itemResponse>'),
+  (1, 26475, 1, 'SCORED', '<itemResponse><response id="1"><value>1</value><value>2</value></response></itemResponse>'),
   (1, 26475, 1, 'SCORED', 'A,E'),
-  -- TODO: This does not render properly due to the quotes
   (1, 26483, 1, 'SCORED', 'That the water-scorpion inhales air in an odd way. The source says,"You may catch him too when he comes up to get air. This he does in a very funny way."'),
   (1, 26465, 1, 'SCORED', 'A'),
-  (1, 33850, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="RESPONSE"&gt;&lt;value&gt;1 a&lt;/value&gt;&lt;value&gt;2 b&lt;/value&gt;&lt;value&gt;3 a&lt;/value&gt;&lt;value&gt;4 a&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
+  (1, 33850, 1, 'SCORED', '<itemResponse><response id="RESPONSE"><value>1 a</value><value>2 b</value><value>3 a</value><value>4 a</value></response></itemResponse>'),
   (1, 33848, 1, 'SCORED', 'D'),
-  (1, 33846, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="EBSR1"&gt;&lt;value&gt;A&lt;/value&gt;&lt;/response&gt;&lt;response id="EBSR2"&gt;&lt;value&gt;D&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
+  (1, 33846, 1, 'SCORED', '<itemResponse><response id="EBSR1"><value>A</value></response><response id="EBSR2"><value>D</value></response></itemResponse>'),
   (1, 32360, 1, 'SCORED', 'I think that the person named Tiffany is right. It is not the older kids fault for the younger kids that get hurt. The parents who are mad should be mad at themselves because they are the ones who let their kids skateboard. I don''t know howyoung these kids are skateboarding but 8, 9, or 10 sounds like a good age. I think too that the older kids 8 up should still have their rights as skateboarders. These examples clearly state what and why I think about this topic.'),
-  (1, 28209, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="EBSR1"&gt;&lt;value&gt;D&lt;/value&gt;&lt;/response&gt;&lt;response id="EBSR2"&gt;&lt;value&gt;D&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
-  (1, 28203, 0, 'SCORED', '&lt;itemResponse&gt;&lt;response id="1"&gt;&lt;value&gt;2&lt;/value&gt;&lt;value&gt;3&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
+  (1, 28209, 1, 'SCORED', '<itemResponse><response id="EBSR1"><value>D</value></response><response id="EBSR2"><value>D</value></response></itemResponse>'),
+  (1, 28203, 0, 'SCORED', '<itemResponse><response id="1"><value>2</value><value>3</value></response></itemResponse>'),
   (1, 28215, 0, 'SCORED', 'C'),
-  (1, 28205, 0, 'SCORED', '&lt;itemResponse&gt;&lt;response id="EBSR1"&gt;&lt;value&gt;D&lt;/value&gt;&lt;/response&gt;&lt;response id="EBSR2"&gt;&lt;value&gt;D&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
-  (1, 30149, 1, 'SCORED', '&lt;itemResponse&gt;&lt;response id="1"&gt;&lt;value&gt;1&lt;/value&gt;&lt;value&gt;4&lt;/value&gt;&lt;/response&gt;&lt;/itemResponse&gt;'),
+  (1, 28205, 0, 'SCORED', '<itemResponse><response id="EBSR1"><value>D</value></response><response id="EBSR2"><value>D</value></response></itemResponse>'),
+  (1, 30149, 1, 'SCORED', '<itemResponse><response id="1"><value>1</value><value>4</value></response></itemResponse>'),
   (1, 32372, 0, 'SCORED', 'C,F'),
   (1, 41676, 1, 'SCORED', 'C'),
   (1, 54456, 1, 'SCORED', 'A'),
@@ -145,4 +146,4 @@ INSERT INTO exam_item (exam_id, item_id, score, score_status, response) VALUES
   (1, 54141, 2, 'SCORED', 'Whales work together in many ways. In Source #2 it said," Sometimes the pod might even help an injured whale come up to the surface for air." Another example is in source #3,"Dr. Fred Sharpe had an idea, mabey the whales were working together...the Humpback whales would help each other catch food...the whales were working together!" That is how the different types of whales work together, or help each other"'),
   (1, 61136, 2, 'SCORED', 'Whales use different sounds to o different things together. In Source #2 it says,"The whales use many calls to stay in touch as they hunt." One more example on how whales use their different sounds comes from Source #3,"The whales made magnificent trumpet-like sounds as they swept up and ate the fish." These exaples clearly state why whales use different types of sounds.'),
   (1, 61138, 1, 'SCORED', 'B,F'),
-  (1, 54683, 3, 'SCORED', '&lt;p&gt;&amp;nbsp; &amp;nbsp; Jacob woke up and was very disappointed. He had another Monday at school, wait he forgot! The 5th grader Jacob and his family were going to Monterey, CA. The family was getting ready and packing into the car. They lived in Mammoth. It was a long drive there. They had to take the 203 to the 395 to the 14 to the 58 to the 99. Then to the 46 to the 101 to the 67 to their boat. When they got there. They planned to take a boat ride. The started their trip on the 203, after a while Jacob woke up on the 14. He played some games and when he looked up they were on the 99. He did one last nap and woke up on the 101 and then stayed awake the rest of the time and had lunch and played more games. They got there and checked in to the hotel, Best Western Hotel. At 2:00 pm they went on their 3 1/2 voyage. Around the 1st hour Jacob got seasick. As they were heading back to the docks in the boat they saw a Humpback whale leap out of the water, gracefully not slopy.&amp;nbsp;&amp;nbsp;&lt;/p&gt;');
+  (1, 54683, 3, 'SCORED', '<p>&nbsp; &nbsp; Jacob woke up and was very disappointed. He had another Monday at school, wait he forgot! The 5th grader Jacob and his family were going to Monterey, CA. The family was getting ready and packing into the car. They lived in Mammoth. It was a long drive there. They had to take the 203 to the 395 to the 14 to the 58 to the 99. Then to the 46 to the 101 to the 67 to their boat. When they got there. They planned to take a boat ride. The started their trip on the 203, after a while Jacob woke up on the 14. He played some games and when he looked up they were on the 99. He did one last nap and woke up on the 101 and then stayed awake the rest of the time and had lunch and played more games. They got there and checked in to the hotel, Best Western Hotel. At 2:00 pm they went on their 3 1/2 voyage. Around the 1st hour Jacob got seasick. As they were heading back to the docks in the boat they saw a Humpback whale leap out of the water, gracefully not slopy.&nbsp;&nbsp;</p>');

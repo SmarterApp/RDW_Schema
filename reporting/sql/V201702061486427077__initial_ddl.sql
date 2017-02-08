@@ -172,6 +172,12 @@ CREATE TABLE IF NOT EXISTS roster_membership (
   CONSTRAINT fk__roster_membership__student FOREIGN KEY (student_id) REFERENCES student(id)
 );
 
+CREATE TABLE IF NOT EXISTS user_roster (
+  roster_id int NOT NULL,
+  user_login varchar(255) NOT NULL,
+  CONSTRAINT fk__user_roster__roster FOREIGN KEY (roster_id) REFERENCES roster(id)
+);
+
 /** IAB exams **/
 
 CREATE TABLE IF NOT EXISTS iab_exam_student (
