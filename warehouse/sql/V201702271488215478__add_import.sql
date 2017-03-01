@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS import (
   id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
   status tinyint NOT NULL,
   content tinyint NOT NULL,
+  contentType varchar(250) NOT NULL,
   digest varchar(32) NOT NULL,
   batch varchar(250),
   creator varchar(250),
