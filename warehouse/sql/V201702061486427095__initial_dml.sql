@@ -9,7 +9,7 @@ INSERT INTO application_schema_version (major_version) VALUES (0);
 
 INSERT INTO subject (id, name) VALUES
   (1, 'Math'),
-  (2, 'ElA');
+  (2, 'ELA');
 
 INSERT INTO grade (id, code, name) VALUES
   (16, 'IT', 'Infant/toddler'),
