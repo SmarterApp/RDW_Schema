@@ -1,4 +1,4 @@
-/**
+d/**
 ** 	Initial script for the SBAC Reportind Data Warehouse schema
 **
 **  NOTES
@@ -118,8 +118,16 @@ CREATE TABLE IF NOT EXISTS item (
   claim_id smallint,
   target_id smallint,
   natural_id varchar(40) NOT NULL,
+  asmt_id bigint(20) NOT NULL,
+  math_practice tinyint,
+  allow_calc boolean,
+  dok_level tinyint NOT NULL,
+  difficulty float NOT NULL
   CONSTRAINT fk__item__claim FOREIGN KEY (claim_id) REFERENCES claim(id),
-  CONSTRAINT fk__item__target FOREIGN KEY (target_id) REFERENCES target(id)
+  CONSTRAINT fk__item__target FOREIGN KEY (target_id) REFERENCES target(id),
+  CONSTRAINT fk__item__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
+  CONSTRAINT fk__item__math_practice FOREIGN KEY (math_practice) REFERENCES math_practice(practice), 
+  CONSTRAINT fk__item__dok FOREIGN KEY (dok_level) REFERENCES depth_of_knowledge(level)
 );
 
 CREATE TABLE IF NOT EXISTS item_trait_score (
