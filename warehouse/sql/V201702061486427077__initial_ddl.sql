@@ -155,13 +155,13 @@ CREATE TABLE IF NOT EXISTS item (
   asmt_id bigint NOT NULL,
   math_practice tinyint,
   allow_calc boolean,
-  dok_level tinyint NOT NULL,
+  dok tinyint NOT NULL,
   difficulty float NOT NULL,
   CONSTRAINT fk__item__claim FOREIGN KEY (claim_id) REFERENCES claim(id),
   CONSTRAINT fk__item__target FOREIGN KEY (target_id) REFERENCES target(id),
   CONSTRAINT fk__item__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
   CONSTRAINT fk__item__math_practice FOREIGN KEY (math_practice) REFERENCES math_practice(practice), 
-  CONSTRAINT fk__item__dok FOREIGN KEY (dok_level) REFERENCES depth_of_knowledge(level)
+  CONSTRAINT fk__item__dok FOREIGN KEY (dok) REFERENCES depth_of_knowledge(level)
 );
 
 CREATE TABLE IF NOT EXISTS item_trait_score (

@@ -7,7 +7,7 @@ INSERT INTO asmt (id, natural_id, grade_id,type_id, subject_id, academic_year, n
   (2, '(SBAC)SBAC-IAB-FIXED-G4M-OA-MATH-4-Winter-2016-2017', 4, 2, 1, 2016, 'SBAC-IAB-FIXED-G4M-OA-MATH-4', 'MTH IAB G4 OperationsAlgebraicThinking', '9835');
 
 -- TODO: should min/max be taken from assmt packge?
-INSERT INTO item (id, claim_id, target_id, natural_id, asmt_id, dok_level, difficulty, math_practice, allow_calc) VALUES 
+INSERT INTO item (id, claim_id, target_id, natural_id, asmt_id, dok, difficulty, math_practice, allow_calc) VALUES 
   (2010,  5, null, '200-2010', 2, 1, -0.23, 4, false),
   (18943, 5, null, '200-18943', 2, 2, -0.13, 3, true),
   (8906,  5, null, '200-8906', 2, 3, -0.03, 2, true),
