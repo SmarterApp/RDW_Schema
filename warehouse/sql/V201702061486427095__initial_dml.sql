@@ -34,7 +34,7 @@ INSERT INTO grade (id, code, name) VALUES
   (15, 'UG', 'Ungraded');
 
 INSERT INTO asmt_type (id, code, name) VALUES
-  (1, 'ica', 'Interim Comrehensive'),
+  (1, 'ica', 'Interim Comprehensive'),
   (2, 'iab', 'Interim Assessment Block'),
   (3, 'sum', 'Summative');
 
