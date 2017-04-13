@@ -7,23 +7,23 @@ INSERT INTO asmt (id, natural_id, grade_id,type_id, subject_id, academic_year, n
   (2, '(SBAC)SBAC-IAB-FIXED-G4M-OA-MATH-4-Winter-2016-2017', 4, 2, 1, 2016, 'SBAC-IAB-FIXED-G4M-OA-MATH-4', 'MTH IAB G4 OperationsAlgebraicThinking', '9835');
 
 -- TODO: should min/max be taken from assmt packge?
-INSERT INTO item (id, claim_id, target_id, natural_id, asmt_id, dok, difficulty, math_practice, allow_calc) VALUES 
-  (2010,  5, null, '200-2010', 2, 1, -0.23, 4, false),
-  (18943, 5, null, '200-18943', 2, 2, -0.13, 3, true),
-  (8906,  5, null, '200-8906', 2, 3, -0.03, 2, true),
-  (2014,  5, null, '200-2014', 2, 4, 1.23, 1, false),
-  (2024,  5, null, '200-2024', 2, 1, 0.23, 5, true),
-  (13980, 5, null, '200-13980', 2, 2, 1.1, 6, false),
-  (29233, 5, null, '200-29233', 2, 3, -0.43, 7, true),
-  (2018,  5, null, '200-2018', 2, 4, 0.23, 8, false),
-  (11443, 5, null, '200-11443', 2, 1, -0.53, 1, true),
-  (30075, 5, null, '200-30075', 2, 2, -0.13, 2, false),
-  (18804, 5, null, '200-18804', 2, 3, 0.29, 3, true),
-  (45230, 5, null, '200-45230', 2, 4, 1.23, 4, false),
-  (2002,  5, null, '200-2002', 2, 1, 0.23, 5, true),
-  (18461, 5, null, '200-18461', 2, 2, 1.5, 6, false),
-  (13468, 5, null, '200-13468', 2, 3, -0.23, 7, true),
-  (14461, 5, null, '200-14461', 2, 4, 0.23, 8, false);
+INSERT INTO item (id, claim_id, target_id, natural_id, asmt_id, dok, difficulty, max_points, math_practice, allow_calc) VALUES 
+  (2010,  5, null, '200-2010',  2, 1, -0.23, 2, 4, false),
+  (18943, 5, null, '200-18943', 2, 2, -0.13, 2, 3, false),
+  (8906,  5, null, '200-8906',  2, 3, -0.03, 2, 2, true),
+  (2014,  5, null, '200-2014',  2, 4,  1.23, 2, 1, true),
+  (2024,  5, null, '200-2024',  2, 1,  0.23, 2, 5, true),
+  (13980, 5, null, '200-13980', 2, 2,  1.1,  2, 6, false),
+  (29233, 5, null, '200-29233', 2, 3, -0.43, 2, 7, false),
+  (2018,  5, null, '200-2018',  2, 4,  0.23, 2, 8, false),
+  (11443, 5, null, '200-11443', 2, 1, -0.53, 2, 1, false),
+  (30075, 5, null, '200-30075', 2, 2, -0.13, 2, 2, false),
+  (18804, 5, null, '200-18804', 2, 3,  0.29, 2, 3, true),
+  (45230, 5, null, '200-45230', 2, 4,  1.23, 2, 4, true),
+  (2002,  5, null, '200-2002',  2, 1,  0.23, 2, 5, true),
+  (18461, 5, null, '200-18461', 2, 2,  1.5,  2, 6, false),
+  (13468, 5, null, '200-13468', 2, 3, -0.23, 2, 7, false),
+  (14461, 5, null, '200-14461', 2, 4,  0.23, 2, 8, false);
 
 INSERT IGNORE INTO district (id, name, natural_id) VALUES
   (1, 'Sample District 1', '01247430000000');

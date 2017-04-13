@@ -133,6 +133,7 @@ CREATE TABLE IF NOT EXISTS item (
   allow_calc boolean,
   dok tinyint NOT NULL,
   difficulty float NOT NULL,
+  max_points int NOT NULL,
   CONSTRAINT fk__item__claim FOREIGN KEY (claim_id) REFERENCES claim(id),
   CONSTRAINT fk__item__target FOREIGN KEY (target_id) REFERENCES target(id),
   CONSTRAINT fk__item__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
