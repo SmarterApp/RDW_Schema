@@ -190,15 +190,15 @@ CREATE TABLE IF NOT EXISTS item_difficulty_cuts (
 
 CREATE TABLE IF NOT EXISTS district (
   id mediumint NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name varchar(60) NOT NULL,
-  natural_id varchar(40) NOT NULL UNIQUE
+  natural_id varchar(40) NOT NULL UNIQUE,
+  name varchar(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS school (
   id mediumint NOT NULL AUTO_INCREMENT PRIMARY KEY,
   district_id mediumint NOT NULL,
-  name varchar(60) NOT NULL,
   natural_id varchar(40) NOT NULL UNIQUE,
+  name varchar(100) NOT NULL,
   CONSTRAINT fk__school__district FOREIGN KEY (district_id) REFERENCES district(id)
 );
 
@@ -212,9 +212,9 @@ CREATE TABLE IF NOT EXISTS state (
 CREATE TABLE IF NOT EXISTS student (
   id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
   ssid varchar(65) NOT NULL UNIQUE,
-  last_or_surname varchar(35) NOT NULL,
-  first_name varchar(35) NOT NULL,
-  middle_name varchar(35),
+  last_or_surname varchar(60) NOT NULL,
+  first_name varchar(60) NOT NULL,
+  middle_name varchar(60),
   gender_id tinyint NOT NULL,
   first_entry_into_us_school_at date,
   lep_entry_at date,
@@ -401,9 +401,9 @@ DROP PROCEDURE IF EXISTS student_upsert;
 
 DELIMITER //
 CREATE PROCEDURE student_upsert (IN  p_ssid                          VARCHAR(65),
-                                IN  p_last_or_surname               VARCHAR(35),
-                                IN  p_first_name                    VARCHAR(35),
-                                IN  p_middle_name                   VARCHAR(35),
+                                IN  p_last_or_surname               VARCHAR(60),
+                                IN  p_first_name                    VARCHAR(60),
+                                IN  p_middle_name                   VARCHAR(60),
                                 IN  p_gender_id                     TINYINT,
                                 IN  p_first_entry_into_us_school_at DATE,
                                 IN  p_lep_entry_at                  DATE,
@@ -445,7 +445,7 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS district_upsert;
 
 DELIMITER //
-CREATE PROCEDURE district_upsert(IN  p_name       VARCHAR(60),
+CREATE PROCEDURE district_upsert(IN  p_name       VARCHAR(100),
                                  IN  p_natural_id VARCHAR(40),
                                  OUT p_id         MEDIUMINT)
   BEGIN
@@ -475,9 +475,9 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS school_upsert;
 
 DELIMITER //
-CREATE PROCEDURE school_upsert(IN  p_district_name       VARCHAR(60),
+CREATE PROCEDURE school_upsert(IN  p_district_name       VARCHAR(100),
                                IN  p_district_natural_id VARCHAR(40),
-                               IN  p_name                VARCHAR(60),
+                               IN  p_name                VARCHAR(100),
                                IN  p_natural_id          VARCHAR(40),
                                OUT p_id                  MEDIUMINT)
   BEGIN

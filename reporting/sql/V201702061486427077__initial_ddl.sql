@@ -166,14 +166,14 @@ CREATE TABLE IF NOT EXISTS item_difficulty_cuts (
 
 CREATE TABLE IF NOT EXISTS district (
   id mediumint NOT NULL PRIMARY KEY,
-  name varchar(60) NOT NULL,
+  name varchar(100) NOT NULL,
   natural_id varchar(40) NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS school (
   id mediumint NOT NULL PRIMARY KEY,
   district_id mediumint NOT NULL,
-  name varchar(60) NOT NULL,
+  name varchar(100) NOT NULL,
   natural_id varchar(40) NOT NULL UNIQUE,
   CONSTRAINT fk__school__district FOREIGN KEY (district_id) REFERENCES district(id)
 );
@@ -187,9 +187,9 @@ CREATE TABLE IF NOT EXISTS state (
 CREATE TABLE IF NOT EXISTS student (
   id bigint NOT NULL PRIMARY KEY,
   ssid varchar(65) NOT NULL UNIQUE,
-  last_or_surname varchar(35) NOT NULL,
-  first_name varchar(35) NOT NULL,
-  middle_name varchar(35),
+  last_or_surname varchar(60) NOT NULL,
+  first_name varchar(60) NOT NULL,
+  middle_name varchar(60),
   gender_id tinyint NOT NULL,
   first_entry_into_us_school_at date,
   lep_entry_at date,
