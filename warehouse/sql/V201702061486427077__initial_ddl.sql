@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS import (
   batch varchar(250),
   creator varchar(250),
   created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-  message text
+  message text,
+  INDEX idx__import__digest (digest)
 );
 
 /** Reference tables **/
