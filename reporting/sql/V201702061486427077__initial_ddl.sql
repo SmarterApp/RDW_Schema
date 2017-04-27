@@ -15,6 +15,25 @@ CREATE TABLE application_schema_version (
    major_version int UNIQUE NOT NULL
 );
 
+/** Import **/
+
+CREATE TABLE IF NOT EXISTS import_content (
+  id tinyint NOT NULL PRIMARY KEY,
+  name varchar(20) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS import_status (
+  id tinyint NOT NULL PRIMARY KEY,
+  name varchar(20) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS import (
+  id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  status tinyint NOT NULL,
+  content tinyint NOT NULL,
+  message text
+ );
+
 /** Reference tables **/
 
 CREATE TABLE IF NOT EXISTS subject (
@@ -195,7 +214,9 @@ CREATE TABLE IF NOT EXISTS student (
   lep_entry_at date,
   lep_exit_at date,
   is_demo tinyint,
-  birthday date NOT NULL
+  birthday date NOT NULL,
+  import_id bigint NOT NULL,
+  CONSTRAINT fk__student__import FOREIGN KEY (import_id) REFERENCES import(id)
  );
 
 CREATE TABLE IF NOT EXISTS student_ethnicity (
@@ -257,7 +278,9 @@ CREATE TABLE IF NOT EXISTS iab_exam (
   scale_score smallint NOT NULL,
   scale_score_std_err float NOT NULL,
   completed_at date NOT NULL,
-  CONSTRAINT fk_iab_exam__student FOREIGN KEY (student_id) REFERENCES student(id),
+  import_id bigint NOT NULL,
+  CONSTRAINT fk__iab_exam__import FOREIGN KEY (import_id) REFERENCES import(id),
+  CONSTRAINT fk__iab_exam__student FOREIGN KEY (student_id) REFERENCES student(id),
   CONSTRAINT fk__iab_exam__school FOREIGN KEY (school_id) REFERENCES school(id),
   CONSTRAINT fk__iab_exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id)
 );
@@ -326,6 +349,8 @@ CREATE TABLE IF NOT EXISTS exam (
   claim4_scale_score_std_err float,
   claim4_category tinyint,
   completed_at date NOT NULL,
+  import_id bigint NOT NULL,
+  CONSTRAINT fk__exam__import FOREIGN KEY (import_id) REFERENCES import(id),
   CONSTRAINT fk__exam__student FOREIGN KEY (student_id) REFERENCES student(id),
   CONSTRAINT fk__exam__school FOREIGN KEY (school_id) REFERENCES school(id),
   CONSTRAINT fk__exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id)

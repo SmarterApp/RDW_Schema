@@ -96,6 +96,8 @@ CREATE TABLE IF NOT EXISTS asmt (
   name varchar(250),
   label varchar(255),
   version varchar(30),
+  import_id bigint, -- TODO NOT NULL
+  CONSTRAINT fk__asmt__import FOREIGN KEY (import_id) REFERENCES import(id),
   CONSTRAINT fk__asmt__grade FOREIGN KEY (grade_id) REFERENCES grade(id),
   CONSTRAINT fk__asmt__type FOREIGN KEY (type_id) REFERENCES asmt_type(id),
   CONSTRAINT fk__asmt__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
@@ -200,6 +202,8 @@ CREATE TABLE IF NOT EXISTS school (
   district_id mediumint NOT NULL,
   natural_id varchar(40) NOT NULL UNIQUE,
   name varchar(100) NOT NULL,
+  import_id bigint, -- TODO NOT NULL
+  CONSTRAINT fk__school__import FOREIGN KEY (import_id) REFERENCES import(id),
   CONSTRAINT fk__school__district FOREIGN KEY (district_id) REFERENCES district(id)
 );
 
@@ -221,7 +225,9 @@ CREATE TABLE IF NOT EXISTS student (
   lep_entry_at date,
   lep_exit_at date,
   is_demo tinyint,
-  birthday date NOT NULL
+  birthday date NOT NULL,
+  import_id bigint NOT NULL,
+  CONSTRAINT fk__student__import FOREIGN KEY (import_id) REFERENCES import(id)
  );
 
 
@@ -414,8 +420,11 @@ CREATE PROCEDURE student_upsert (IN  p_ssid                          VARCHAR(65)
                                 IN  p_lep_entry_at                  DATE,
                                 IN  p_lep_exit_at                   DATE,
                                 IN  p_birthday                      DATE,
+                                IN  p_import_id                     BIGINT,
                                 OUT p_id                            BIGINT)
   BEGIN
+
+    DECLARE idToKeep BIGINT; -- TODO: change this
 
     DECLARE CONTINUE HANDLER FOR 1062
     BEGIN
@@ -426,19 +435,34 @@ CREATE PROCEDURE student_upsert (IN  p_ssid                          VARCHAR(65)
 
     IF (p_id IS NOT NULL)
     THEN
-      UPDATE student SET
-        last_or_surname               = p_last_or_surname,
-        first_name                    = p_first_name,
-        middle_name                   = p_middle_name,
-        gender_id                     = p_gender_id,
-        first_entry_into_us_school_at = p_first_entry_into_us_school_at,
-        lep_entry_at                  = p_lep_entry_at,
-        lep_exit_at                   = p_lep_exit_at,
-        birthday                      = p_birthday
-      WHERE id = p_id;
+
+      SELECT id INTO idToKeep FROM student WHERE ssid = p_ssid
+        and last_or_surname               = p_last_or_surname
+        and first_name                    = p_first_name
+        and middle_name                   = p_middle_name
+        and gender_id                     = p_gender_id
+        and first_entry_into_us_school_at = p_first_entry_into_us_school_at
+        and lep_entry_at                  = p_lep_entry_at
+        and lep_exit_at                   = p_lep_exit_at
+        and birthday                      = p_birthday;
+
+      IF (idToKeep IS NULL)
+      THEN
+        UPDATE student SET
+          last_or_surname               = p_last_or_surname,
+          first_name                    = p_first_name,
+          middle_name                   = p_middle_name,
+          gender_id                     = p_gender_id,
+          first_entry_into_us_school_at = p_first_entry_into_us_school_at,
+          lep_entry_at                  = p_lep_entry_at,
+          lep_exit_at                   = p_lep_exit_at,
+          birthday                      = p_birthday,
+          import_id                     = p_import_id
+        WHERE id = p_id;
+       END IF;
     ELSE
-      INSERT INTO student (ssid, last_or_surname, first_name, middle_name, gender_id, first_entry_into_us_school_at, lep_entry_at, lep_exit_at, birthday)
-      VALUES (p_ssid, p_last_or_surname, p_first_name, p_middle_name, p_gender_id, p_first_entry_into_us_school_at, p_lep_entry_at, p_lep_exit_at, p_birthday);
+      INSERT INTO student (ssid, last_or_surname, first_name, middle_name, gender_id, first_entry_into_us_school_at, lep_entry_at, lep_exit_at, birthday, import_id)
+      VALUES (p_ssid, p_last_or_surname, p_first_name, p_middle_name, p_gender_id, p_first_entry_into_us_school_at, p_lep_entry_at, p_lep_exit_at, p_birthday, p_import_id);
 
       SELECT id INTO p_id FROM student WHERE ssid = p_ssid;
     END IF;

@@ -7,6 +7,14 @@ USE reporting;
 
 INSERT INTO application_schema_version (major_version) VALUES (0);
 
+INSERT INTO import_content (id, name) VALUES
+  (1, 'EXAM'),
+  (2, 'PACKAGE');
+
+INSERT INTO import_status (id, name) VALUES
+  (-100, 'INITIAL'),
+  (100, 'MIGRATED');
+
 INSERT INTO subject (id, name) VALUES
   (1, 'Math'),
   (2, 'ELA');
