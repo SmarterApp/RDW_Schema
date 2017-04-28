@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS student_ethnicity (
 -- Note: data mart has only active groups
 CREATE TABLE IF NOT EXISTS student_group (
   id int NOT NULL PRIMARY KEY,
-  name varchar(255) NOT NULL UNIQUE,
+  name varchar(255) NOT NULL,
   school_id mediumint NOT NULL,
   school_year smallint NOT NULL,
   subject_id tinyint,
