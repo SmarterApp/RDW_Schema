@@ -94,8 +94,8 @@ CREATE PROCEDURE reporting.create_student_groups()
     REPEAT
       SELECT max(id) +1 INTO idVal FROM student_group;
       IF (idval is null) THEN SET idVal = 1; END IF;
-      INSERT INTO student_group (id, created_by, school_id, school_year, name, subject_id) VALUES
-        (idVal , 'dwtest@example.com', (SELECT id FROM school ORDER BY RAND() LIMIT 1), 2017, CONCAT('Test Student Group ', idVal), null);
+      INSERT INTO student_group (id, school_id, school_year, name, subject_id) VALUES
+        (idVal , (SELECT id FROM school ORDER BY RAND() LIMIT 1), 2017, CONCAT('Test Student Group ', idVal), null);
 
       INSERT INTO user_student_group (student_group_id, user_login) VALUES
         (idVal, CONCAT('user', FLOOR(RAND()*10)));
