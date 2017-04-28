@@ -213,6 +213,7 @@ CREATE TABLE IF NOT EXISTS student_group (
   subject_id tinyint,
   creator varchar(250),
   created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  CONSTRAINT uk__name__school__year UNIQUE INDEX (name, school_id, school_year),
   CONSTRAINT fk__student_group__school FOREIGN KEY (school_id) REFERENCES school(id),
   CONSTRAINT fk__student_group__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
 );
