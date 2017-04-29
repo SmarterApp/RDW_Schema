@@ -1,0 +1,7 @@
+include 'warehouse'
+include 'reporting'
+
+// It is considered good practice to explicitly set the root project name
+rootProject.name = "rdw-schema"
+
+

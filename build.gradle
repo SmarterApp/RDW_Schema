@@ -1,0 +1,28 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'mysql:mysql-connector-java:5.1.41'
+    }
+}
+
+plugins {
+        id 'org.flywaydb.flyway' version '4.2.0'
+}
+
+apply plugin: 'org.flywaydb.flyway'
+
+subprojects {
+    apply plugin: 'org.flywaydb.flyway'
+
+}
+
+//'export' the subproject tasks so that they are easier to invoke, and can be invoked from
+//parent project
+task('migrateWarehouse', dependsOn: ':warehouse:flywayMigrate')
+task('cleanWarehouse', dependsOn: ':warehouse:flywayClean')
+task('migrateReporting', dependsOn: ':reporting:flywayMigrate')
+task('cleanReporting', dependsOn: ':reporting:flywayClean')
+task('cleanAll', dependsOn: [':warehouse:flywayClean', ':reporting:flywayClean'])
+task('migrateAll', dependsOn: [':warehouse:flywayMigrate', ':reporting:flywayMigrate'])

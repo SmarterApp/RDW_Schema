@@ -8,27 +8,31 @@ brew install flyway
 ```
 
 #### To create the schema 
-There are multiple schemas: a data warehouse and data mart(s). Each has a corresponding folder. 
-Flyway configurations can be found in the `flyway.properties` file. 
-A script have been provided (mostly to provide a hook for IDEA configurations).
-To install, go to a corresponding folder and run:
+There are multiple schemas: a data warehouse ("warehouse") and data mart(s) ("reporting"). Each has a corresponding folder. 
+Flyway configurations can be found in the `build.gradle` file for each schema subdirectory.
+Gradle will perform the migrations or cleans.
+To install or migrate, run:
 ```bash
-warehouse$ flyway -configFile=flyway.properties migrate
+RDW_Schema$ ./gradlew migrateWarehouse
 OR
-warehouse$ ../scripts/migrate
+RDW_Schema$ ./gradlew migrateReporting
+OR
+RDW_Schema$ ./gradlew migrateAll
 ```
 
 #### To wipe out the schema
 ```bash
-warehouse$ flyway -configFile=flyway.properties clean
+RDW_Schema$ ./gradlew cleanWarehouse
 OR
-warehouse$ ../scripts/clean
+RDW_Schema$ ./gradlew cleanReporting
+OR
+RDW_Schema$ ./gradlew cleanAll
 ```
 
 #### Alternate Data Source
 The data source, user, password, etc. can be overridden on the command line, e.g.
 ```bash
-warehouse$ ../scripts/migrate -url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -user=sbac -password=mypassword
+RDW_Warehouse$ ./gradlew -Pflyway.url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -Pflyway.user=sbac -Pflyway.password=mypassword
 ```
 
 ### Developing
