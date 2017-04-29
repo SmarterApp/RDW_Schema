@@ -234,13 +234,14 @@ CREATE TABLE IF NOT EXISTS student_ethnicity (
 -- TODO: consider having a log of changes to the group: who did the change, when and what was changed
 CREATE TABLE IF NOT EXISTS student_group (
   id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name varchar(255) NOT NULL UNIQUE,
+  name varchar(255) NOT NULL,
   school_id mediumint NOT NULL,
   school_year smallint NOT NULL,
   subject_id tinyint,
   active tinyint NOT NULL,
-  created_by varchar(255) NOT NULL,
-  created_at timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  creator varchar(250),
+  created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  CONSTRAINT uk__name__school__year UNIQUE INDEX (name, school_id, school_year),
   CONSTRAINT fk__student_group__school FOREIGN KEY (school_id) REFERENCES school(id),
   CONSTRAINT fk__student_group__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
 );
@@ -248,6 +249,7 @@ CREATE TABLE IF NOT EXISTS student_group (
 CREATE TABLE IF NOT EXISTS student_group_membership (
   student_group_id int NOT NULL,
   student_id bigint NOT NULL,
+  CONSTRAINT uk__student_group_id__student_id UNIQUE KEY (student_group_id, student_id),
   CONSTRAINT fk__student_group_membership__student_group FOREIGN KEY (student_group_id) REFERENCES student_group(id),
   CONSTRAINT fk__student_group_membership__student FOREIGN KEY (student_id) REFERENCES student(id)
 );
@@ -255,6 +257,7 @@ CREATE TABLE IF NOT EXISTS student_group_membership (
 CREATE TABLE IF NOT EXISTS user_student_group (
   student_group_id int NOT NULL,
   user_login varchar(255) NOT NULL,
+  CONSTRAINT uk__student_group_id__user_login UNIQUE KEY (student_group_id, user_login),
   CONSTRAINT fk__user_student_group__student_group FOREIGN KEY (student_group_id) REFERENCES student_group(id)
 );
 
@@ -293,7 +296,7 @@ CREATE TABLE IF NOT EXISTS iab_exam (
   category tinyint,
   scale_score float,
   scale_score_std_err float,
-  completed_at date NOT NULL,
+  completed_at timestamp(0) NOT NULL,
   CONSTRAINT fk__iab_exam__iab_exam_student FOREIGN KEY (iab_exam_student_id) REFERENCES iab_exam_student(id),
   CONSTRAINT fk__iab_exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
   CONSTRAINT fk__iab_exam__import FOREIGN KEY (import_id) REFERENCES import(id)
@@ -358,7 +361,7 @@ CREATE TABLE IF NOT EXISTS exam (
   scale_score float,
   scale_score_std_err float,
   achievement_level tinyint,
-  completed_at date NOT NULL,
+  completed_at timestamp(0) NOT NULL,
   CONSTRAINT fk__exam__exam_student FOREIGN KEY (exam_student_id) REFERENCES exam_student(id),
   CONSTRAINT fk__exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
   CONSTRAINT fk__exam__import FOREIGN KEY (import_id) REFERENCES import(id)
