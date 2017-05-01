@@ -7,6 +7,12 @@ USE reporting;
 
 INSERT INTO application_schema_version (major_version) VALUES (0);
 
+INSERT INTO migrate_status (id, name) VALUES
+  (-20, 'FAILED'),
+  (-10, 'ABANDONED'),
+  (10, 'STARTED'),
+  (20, 'COMPLETED');
+
 INSERT INTO subject (id, name) VALUES
   (1, 'Math'),
   (2, 'ELA');

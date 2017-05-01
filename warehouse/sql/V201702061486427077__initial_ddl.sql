@@ -96,9 +96,11 @@ CREATE TABLE IF NOT EXISTS asmt (
   name varchar(250),
   label varchar(255),
   version varchar(30),
+  import_id bigint NOT NULL,
   CONSTRAINT fk__asmt__grade FOREIGN KEY (grade_id) REFERENCES grade(id),
   CONSTRAINT fk__asmt__type FOREIGN KEY (type_id) REFERENCES asmt_type(id),
-  CONSTRAINT fk__asmt__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
+  CONSTRAINT fk__asmt__subject FOREIGN KEY (subject_id) REFERENCES subject(id),
+  CONSTRAINT fk__asmt__import FOREIGN KEY (import_id) REFERENCES import(id)
 );
 
 CREATE TABLE IF NOT EXISTS asmt_score (
@@ -200,7 +202,9 @@ CREATE TABLE IF NOT EXISTS school (
   district_id mediumint NOT NULL,
   natural_id varchar(40) NOT NULL UNIQUE,
   name varchar(100) NOT NULL,
-  CONSTRAINT fk__school__district FOREIGN KEY (district_id) REFERENCES district(id)
+  import_id bigint NOT NULL,
+  CONSTRAINT fk__school__district FOREIGN KEY (district_id) REFERENCES district(id),
+  CONSTRAINT fk__school__import FOREIGN KEY (import_id) REFERENCES import(id)
 );
 
 CREATE TABLE IF NOT EXISTS state (
@@ -220,8 +224,9 @@ CREATE TABLE IF NOT EXISTS student (
   first_entry_into_us_school_at date,
   lep_entry_at date,
   lep_exit_at date,
-  is_demo tinyint,
-  birthday date NOT NULL
+  birthday date NOT NULL,
+  import_id bigint NOT NULL,
+  CONSTRAINT fk__student__import FOREIGN KEY (import_id) REFERENCES import(id)
  );
 
 
@@ -241,9 +246,11 @@ CREATE TABLE IF NOT EXISTS student_group (
   active tinyint NOT NULL,
   creator varchar(250),
   created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  import_id bigint NOT NULL,
   CONSTRAINT uk__name__school__year UNIQUE INDEX (name, school_id, school_year),
   CONSTRAINT fk__student_group__school FOREIGN KEY (school_id) REFERENCES school(id),
-  CONSTRAINT fk__student_group__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
+  CONSTRAINT fk__student_group__subject FOREIGN KEY (subject_id) REFERENCES subject(id),
+  CONSTRAINT fk__student_group__import FOREIGN KEY (import_id) REFERENCES import(id)
 );
 
 CREATE TABLE IF NOT EXISTS student_group_membership (
@@ -283,7 +290,6 @@ CREATE TABLE IF NOT EXISTS iab_exam_student (
 
 CREATE TABLE IF NOT EXISTS iab_exam (
   id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  import_id bigint NOT NULL,
   iab_exam_student_id bigint NOT NULL,
   school_year smallint NOT NULL,
   asmt_id bigint NOT NULL,
@@ -297,6 +303,7 @@ CREATE TABLE IF NOT EXISTS iab_exam (
   scale_score float,
   scale_score_std_err float,
   completed_at timestamp(0) NOT NULL,
+  import_id bigint NOT NULL,
   CONSTRAINT fk__iab_exam__iab_exam_student FOREIGN KEY (iab_exam_student_id) REFERENCES iab_exam_student(id),
   CONSTRAINT fk__iab_exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
   CONSTRAINT fk__iab_exam__import FOREIGN KEY (import_id) REFERENCES import(id)
@@ -348,7 +355,6 @@ CREATE TABLE IF NOT EXISTS exam_student (
 
 CREATE TABLE IF NOT EXISTS exam (
   id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  import_id bigint NOT NULL,
   exam_student_id bigint NOT NULL,
   school_year smallint NOT NULL,
   asmt_id bigint NOT NULL,
@@ -362,6 +368,7 @@ CREATE TABLE IF NOT EXISTS exam (
   scale_score_std_err float,
   achievement_level tinyint,
   completed_at timestamp(0) NOT NULL,
+  import_id bigint NOT NULL,
   CONSTRAINT fk__exam__exam_student FOREIGN KEY (exam_student_id) REFERENCES exam_student(id),
   CONSTRAINT fk__exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
   CONSTRAINT fk__exam__import FOREIGN KEY (import_id) REFERENCES import(id)
@@ -408,7 +415,7 @@ CREATE TABLE IF NOT EXISTS exam_claim_score (
 DROP PROCEDURE IF EXISTS student_upsert;
 
 DELIMITER //
-CREATE PROCEDURE student_upsert (IN  p_ssid                          VARCHAR(65),
+CREATE PROCEDURE student_upsert(IN  p_ssid                          VARCHAR(65),
                                 IN  p_last_or_surname               VARCHAR(60),
                                 IN  p_first_name                    VARCHAR(60),
                                 IN  p_middle_name                   VARCHAR(60),
@@ -417,9 +424,13 @@ CREATE PROCEDURE student_upsert (IN  p_ssid                          VARCHAR(65)
                                 IN  p_lep_entry_at                  DATE,
                                 IN  p_lep_exit_at                   DATE,
                                 IN  p_birthday                      DATE,
+                                IN  p_import_id                     BIGINT,
                                 OUT p_id                            BIGINT)
   BEGIN
 
+    DECLARE isUpdate TINYINT;
+
+    --  handle duplicate entry: if there are two competing inserts, one will end up here
     DECLARE CONTINUE HANDLER FOR 1062
     BEGIN
       SELECT id INTO p_id FROM student WHERE ssid = p_ssid;
@@ -429,19 +440,36 @@ CREATE PROCEDURE student_upsert (IN  p_ssid                          VARCHAR(65)
 
     IF (p_id IS NOT NULL)
     THEN
-      UPDATE student SET
-        last_or_surname               = p_last_or_surname,
-        first_name                    = p_first_name,
-        middle_name                   = p_middle_name,
-        gender_id                     = p_gender_id,
-        first_entry_into_us_school_at = p_first_entry_into_us_school_at,
-        lep_entry_at                  = p_lep_entry_at,
-        lep_exit_at                   = p_lep_exit_at,
-        birthday                      = p_birthday
-      WHERE id = p_id;
+      -- check if there is anything to update
+      SELECT CASE WHEN count(*) > 0 THEN 0 ELSE 1 END INTO isUpdate FROM student
+      WHERE id = p_id
+            AND last_or_surname = p_last_or_surname
+            AND first_name = p_first_name
+            AND middle_name = p_middle_name
+            AND gender_id = p_gender_id
+            AND first_entry_into_us_school_at <=> p_first_entry_into_us_school_at
+            AND lep_entry_at <=> p_lep_entry_at
+            AND lep_exit_at <=> p_lep_exit_at
+            AND birthday = p_birthday;
+
+      IF (isUpdate = 1)
+      THEN
+        UPDATE student
+        SET
+          last_or_surname               = p_last_or_surname,
+          first_name                    = p_first_name,
+          middle_name                   = p_middle_name,
+          gender_id                     = p_gender_id,
+          first_entry_into_us_school_at = p_first_entry_into_us_school_at,
+          lep_entry_at                  = p_lep_entry_at,
+          lep_exit_at                   = p_lep_exit_at,
+          birthday                      = p_birthday,
+          import_id                     = p_import_id
+        WHERE id = p_id;
+      END IF;
     ELSE
-      INSERT INTO student (ssid, last_or_surname, first_name, middle_name, gender_id, first_entry_into_us_school_at, lep_entry_at, lep_exit_at, birthday)
-      VALUES (p_ssid, p_last_or_surname, p_first_name, p_middle_name, p_gender_id, p_first_entry_into_us_school_at, p_lep_entry_at, p_lep_exit_at, p_birthday);
+      INSERT INTO student (ssid, last_or_surname, first_name, middle_name, gender_id, first_entry_into_us_school_at, lep_entry_at, lep_exit_at, birthday, import_id)
+      VALUES (p_ssid, p_last_or_surname, p_first_name, p_middle_name, p_gender_id, p_first_entry_into_us_school_at, p_lep_entry_at, p_lep_exit_at, p_birthday, p_import_id);
 
       SELECT id INTO p_id FROM student WHERE ssid = p_ssid;
     END IF;
@@ -458,6 +486,7 @@ CREATE PROCEDURE district_upsert(IN  p_name       VARCHAR(100),
                                  OUT p_id         MEDIUMINT)
   BEGIN
 
+    --  handle duplicate entry: if there are two competing inserts, one will end up here
     DECLARE CONTINUE HANDLER FOR 1062
     BEGIN
       SELECT id INTO p_id FROM district WHERE natural_id = p_natural_id;
@@ -487,10 +516,13 @@ CREATE PROCEDURE school_upsert(IN  p_district_name       VARCHAR(100),
                                IN  p_district_natural_id VARCHAR(40),
                                IN  p_name                VARCHAR(100),
                                IN  p_natural_id          VARCHAR(40),
+                               IN  p_import_id           BIGINT,
                                OUT p_id                  MEDIUMINT)
   BEGIN
     DECLARE p_district_id MEDIUMINT;
+    DECLARE isUpdate TINYINT;
 
+    --  handle duplicate entry: if there are two competing inserts, one will end up here
     DECLARE CONTINUE HANDLER FOR 1062
     BEGIN
       SELECT id INTO p_id FROM school WHERE natural_id = p_natural_id;
@@ -504,16 +536,29 @@ CREATE PROCEDURE school_upsert(IN  p_district_name       VARCHAR(100),
 
     IF (p_id IS NOT NULL)
     THEN
-      -- TODO: this needs to be revisited; afraid it is an overkill to do an update here
-      UPDATE school
-      SET
-        name        = p_name,
-        natural_id  = p_natural_id,
-        district_id = p_district_id
-      WHERE id = p_id;
+      -- check if there is anything to update
+      SELECT CASE WHEN count(*) > 0 THEN 0 ELSE 1 END INTO isUpdate
+       FROM school s JOIN district d
+      WHERE s.id = p_id
+            AND s.name = p_name
+            AND d.natural_id = p_district_natural_id
+            AND d.name = p_district_name;
+
+      IF (isUpdate = 1)
+      THEN
+        UPDATE school
+        SET
+          name        = p_name,
+          natural_id  = p_natural_id,
+          district_id = p_district_id,
+          import_id   = p_import_id
+        WHERE id = p_id;
+
+      END IF;
+
     ELSE
-      INSERT INTO school (district_id, name, natural_id)
-      VALUES (p_district_id, p_name, p_natural_id);
+      INSERT INTO school (district_id, name, natural_id, import_id)
+      VALUES (p_district_id, p_name, p_natural_id, p_import_id);
 
       SELECT id INTO p_id FROM school WHERE natural_id = p_natural_id;
 

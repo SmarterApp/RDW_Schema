@@ -15,6 +15,22 @@ CREATE TABLE application_schema_version (
    major_version int UNIQUE NOT NULL
 );
 
+/** Migrate **/
+CREATE TABLE IF NOT EXISTS migrate_status (
+  id tinyint NOT NULL PRIMARY KEY,
+  name varchar(20) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS migrate (
+  id bigint NOT NULL PRIMARY KEY,
+  status tinyint NOT NULL,
+  first_import_id bigint NOT NULL,
+  last_import_id bigint NOT NULL,
+  created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updated timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  message text
+ );
+
 /** Reference tables **/
 
 CREATE TABLE IF NOT EXISTS subject (
@@ -71,6 +87,7 @@ CREATE TABLE IF NOT EXISTS asmt (
   name varchar(250),
   label varchar(255),
   version varchar(30),
+  import_id bigint NOT NULL,
   CONSTRAINT fk__asmt__grade FOREIGN KEY (grade_id) REFERENCES grade(id),
   CONSTRAINT fk__asmt__type FOREIGN KEY (type_id) REFERENCES asmt_type(id),
   CONSTRAINT fk__asmt__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
@@ -175,6 +192,7 @@ CREATE TABLE IF NOT EXISTS school (
   district_id mediumint NOT NULL,
   name varchar(100) NOT NULL,
   natural_id varchar(40) NOT NULL UNIQUE,
+  import_id bigint NOT NULL,
   CONSTRAINT fk__school__district FOREIGN KEY (district_id) REFERENCES district(id)
 );
 
@@ -195,7 +213,8 @@ CREATE TABLE IF NOT EXISTS student (
   lep_entry_at date,
   lep_exit_at date,
   is_demo tinyint,
-  birthday date NOT NULL
+  birthday date NOT NULL,
+  import_id bigint NOT NULL
  );
 
 CREATE TABLE IF NOT EXISTS student_ethnicity (
@@ -213,6 +232,7 @@ CREATE TABLE IF NOT EXISTS student_group (
   subject_id tinyint,
   creator varchar(250),
   created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  import_id bigint NOT NULL,
   CONSTRAINT uk__name__school__year UNIQUE INDEX (name, school_id, school_year),
   CONSTRAINT fk__student_group__school FOREIGN KEY (school_id) REFERENCES school(id),
   CONSTRAINT fk__student_group__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
@@ -260,6 +280,7 @@ CREATE TABLE IF NOT EXISTS iab_exam (
   scale_score smallint NOT NULL,
   scale_score_std_err float NOT NULL,
   completed_at timestamp(0) NOT NULL,
+  import_id bigint NOT NULL,
   CONSTRAINT fk_iab_exam__student FOREIGN KEY (student_id) REFERENCES student(id),
   CONSTRAINT fk__iab_exam__school FOREIGN KEY (school_id) REFERENCES school(id),
   CONSTRAINT fk__iab_exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id)
@@ -329,6 +350,7 @@ CREATE TABLE IF NOT EXISTS exam (
   claim4_scale_score_std_err float,
   claim4_category tinyint,
   completed_at timestamp(0) NOT NULL,
+  import_id bigint NOT NULL,
   CONSTRAINT fk__exam__student FOREIGN KEY (student_id) REFERENCES student(id),
   CONSTRAINT fk__exam__school FOREIGN KEY (school_id) REFERENCES school(id),
   CONSTRAINT fk__exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id)
