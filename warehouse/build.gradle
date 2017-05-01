@@ -1,8 +1,4 @@
 flyway {
-    url = 'jdbc:mysql://localhost:3306/'
-    user = 'root'
-    password = ''
     schemas = ['warehouse']
     locations = ['filesystem:' + rootDir.path +'/warehouse/sql']
-    driver = 'com.mysql.jdbc.Driver'
 }

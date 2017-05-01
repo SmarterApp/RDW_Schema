@@ -32,8 +32,22 @@ RDW_Schema$ ./gradlew cleanAll
 #### Alternate Data Source
 The data source, user, password, etc. can be overridden on the command line, e.g.
 ```bash
-RDW_Warehouse$ ./gradlew -Pflyway.url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -Pflyway.user=sbac -Pflyway.password=mypassword
+RDW_Schema$ ./gradlew -Pflyway.url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -Pflyway.user=sbac -Pflyway.password=mypassword cleanAll
 ```
+
+#### Other Commands
+Other flyway commands can be executed on the subproject besides clean and migrate by using "./gradlew :\<subproject\>:\<flyway command\>". See https://flywaydb.org/documentation/gradle/ for more info.
+
+For example:
+```bash
+RDW_Schema$ ./gradlew :warehouse:flywayValidate
+or
+RDW_Schema$ ./gradlew :warehouse:flywayInfo
+or
+RDW_Schema$ ./gradlew :warehouse:flywayRepair
+```
+
+
 
 ### Developing
 Flyway requires prefixing each script with the version. To avoid a prefix collision use a timestamp for a prefix. 

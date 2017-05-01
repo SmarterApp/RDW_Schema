@@ -8,13 +8,17 @@ buildscript {
 }
 
 plugins {
-        id 'org.flywaydb.flyway' version '4.2.0'
+    id 'org.flywaydb.flyway' version '4.2.0'
 }
-
-apply plugin: 'org.flywaydb.flyway'
 
 subprojects {
     apply plugin: 'org.flywaydb.flyway'
+    flyway {
+        url = 'jdbc:mysql://localhost:3306/'
+        user = 'root'
+        password = ''
+        driver = 'com.mysql.jdbc.Driver'
+    }
 
 }
 
