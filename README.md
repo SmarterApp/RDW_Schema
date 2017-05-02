@@ -1,11 +1,8 @@
 ## RDW_Schema 
 The goal of this project is to create MySQL 5.6 db schema for Smarter Balanced Reporting Data Warehouse and load the core data.
 
-This project uses [flyway](https://flywaydb.org/getstarted). You must have Flyway installed and running for things to work. 
-For MacOS: 
-```bash
-brew install flyway 
-```
+This project uses [flyway](https://flywaydb.org/getstarted). Gradle will take care of getting flyway making sure things to work. 
+
 
 #### To create the schema 
 There are multiple schemas: a data warehouse ("warehouse") and data mart(s) ("reporting"). Each has a corresponding folder. 
