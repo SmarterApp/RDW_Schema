@@ -3,7 +3,7 @@
 ** 	Initial data load
 **/
 
-USE reporting;
+USE `${schemaName}`;
 
 INSERT INTO application_schema_version (major_version) VALUES (0);
 
