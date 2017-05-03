@@ -39,5 +39,7 @@ def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
 }
 
 task('cleanAll', dependsOn: [project.getTasks().findAll{x-> x.property("group") == "clean"}])
+task('cleanAllTest', dependsOn: [project.getTasks().findAll{x-> x.name.contains("-test") && x.property("group") == "clean"}])
 task('migrateAll', dependsOn: [project.getTasks().findAll{x-> x.property("group") == "migrate"}])
+task('migrateAllTest', dependsOn: [project.getTasks().findAll{x-> x.name.contains("-test") && x.property("group") == "migrate"}])
 
