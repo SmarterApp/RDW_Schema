@@ -30,7 +30,7 @@ def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
             url = 'jdbc:mysql://localhost:3306/'
             user = 'root'
             password = ''
-            driver = com.mysql.jdbc.Driver
+            driver = 'com.mysql.jdbc.Driver'
             schemas = [schema]
             locations = ['filesystem:' + rootDir.path + '/' + schema.split('-')[0] + '/sql']
             placeholders = ["schemaName": schema]
@@ -38,8 +38,14 @@ def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
     }
 }
 
-task('cleanAll', dependsOn: [project.getTasks().findAll{x-> x.property("group") == "clean"}])
-task('cleanAllTest', dependsOn: [project.getTasks().findAll{x-> x.name.contains("-test") && x.property("group") == "clean"}])
-task('migrateAll', dependsOn: [project.getTasks().findAll{x-> x.property("group") == "migrate"}])
-task('migrateAllTest', dependsOn: [project.getTasks().findAll{x-> x.name.contains("-test") && x.property("group") == "migrate"}])
+["clean", "migrate"].each { allTask ->
+    task("${allTask}All", dependsOn: [project.getTasks().findAll{x-> !(x.name.contains("-test")) && x.property("group") == allTask}]){
+        group=allTask
+        description="Custom task to " + allTask.capitalize() + " all objects in the configured production/development schemas."
+    }
+    task("${allTask}AllTest", dependsOn: [project.getTasks().findAll{x-> x.name.contains("-test") && x.property("group") == allTask}]){
+        group=allTask
+        description="Custom task to " + allTask.capitalize() + " all objects in the configured test schemas."
+    }
+}
 
