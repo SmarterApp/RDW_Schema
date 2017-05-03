@@ -38,21 +38,21 @@ INSERT INTO asmt_type (id, code, name) VALUES
   (2, 'iab', 'Interim Assessment Block'),
   (3, 'sum', 'Summative');
 
-INSERT INTO subject_claim_score (subject_id, asmt_type_id, code, name) VALUES
-  (1, 1, '1', 'Concepts' ),
-  (1, 1, 'SOCK_2', 'PSMDA (Problem Solving and Modeling & Data Analysis)'),
-  (1, 1, '3', 'Reasoning'),
-  (2, 1, 'SOCK_R' , 'Reading'),
-  (2, 1, 'SOCK_LS', 'Listening'),
-  (2, 1, '2-W', 'Writing'),
-  (2, 1, '4-CR', 'Research'),
-  (1, 3, '1', 'Concepts' ),
-  (1, 3, 'SOCK_2', 'PSMDA (Problem Solving and Modeling & Data Analysis)'),
-  (1, 3, '3', 'Reasoning'),
-  (2, 3, 'SOCK_R' , 'Reading'),
-  (2, 3, 'SOCK_LS', 'Listening'),
-  (2, 3, '2-W', 'Writing'),
-  (2, 3, '4-CR', 'Research');
+INSERT INTO subject_claim_score (id, subject_id, asmt_type_id, code, name) VALUES
+  (1,  1, 1, '1', 'Concepts' ),
+  (2,  1, 1, 'SOCK_2', 'PSMDA (Problem Solving and Modeling & Data Analysis)'),
+  (3,  1, 1, '3', 'Reasoning'),
+  (4,  2, 1, 'SOCK_R' , 'Reading'),
+  (5,  2, 1, 'SOCK_LS', 'Listening'),
+  (6,  2, 1, '2-W', 'Writing'),
+  (7,  2, 1, '4-CR', 'Research'),
+  (8,  1, 3, '1', 'Concepts' ),
+  (9,  1, 3, 'SOCK_2', 'PSMDA (Problem Solving and Modeling & Data Analysis)'),
+  (10, 1, 3, '3', 'Reasoning'),
+  (11, 2, 3, 'SOCK_R' , 'Reading'),
+  (12, 2, 3, 'SOCK_LS', 'Listening'),
+  (13, 2, 3, '2-W', 'Writing'),
+  (14, 2, 3, '4-CR', 'Research');
 
 INSERT INTO completeness (id, name) VALUES
   (1, 'Partial'),
@@ -71,80 +71,12 @@ INSERT INTO ethnicity (id, name) VALUES
   (4, 'BlackOrAfricanAmerican'),
   (5, 'White'),
   (6, 'NativeHawaiianOrOtherPacificIslander'),
-  (7, 'DemographicRaceTwoOrMoreRaces');
+  (7, 'DemographicRaceTwoOrMoreRaces'),
+  (8, 'Filipino');
 
 INSERT INTO gender (id, name) VALUES
   (1, 'Male'),
   (2, 'Female');
-
-INSERT INTO accommodation (code) VALUES
-  ('TDS_ASL0'),
-  ('TDS_ASL1'), 
-  ('TDS_BT0'), 
-  ('TDS_BT_EXN1'), 
-  ('TDS_BT_ECN'), 
-  ('TDS_BT_UXN'), 
-  ('TDS_BT_UCN'), 
-  ('TDS_BT_UXT'), 
-  ('TDS_BT_UCT'), 
-  ('TDS_TS_Modern'),
-  ('TDS_SLMO'),
-  ('TDS_TS_Accessibility'), 
-  ('TDS_SLM1'),
-  ('TDS_ST1'), 
-  ('TDS_ST0'), 
-  ('TDS_SVC1'), 
-  ('TDS_TTS0'), 
-  ('TDS_TTS_Item'), 
-  ('TDS_TTS_Stim'), 
-  ('TDS_WL0'), 
-  ('TDS_WL_Glossary'), 
-  ('TDS_WL_ArabicGloss'), 
-  ('TDS_WL_CantoneseGloss'), 
-  ('TDS_WL_ESNGloss'), 
-  ('TDS_WL_KoreanGloss'), 
-  ('TDS_WL_MandarinGloss'), 
-  ('TDS_WL_PunjabiGloss'), 
-  ('TDS_WL_RussianGloss'), 
-  ('TDS_WL_TagalGloss'), 
-  ('TDS_WL_UkrainianGloss'), 
-  ('TDS_WL_VietnameseGloss'), 
-  ('Multiple'), 
-  ('NEDS0'), 
-  ('NEDS_BD'), 
-  ('NEDS_CC'), 
-  ('NEDS_CO'), 
-  ('NEDS_Mag'), 
-  ('NEDS_RA_Items'), 
-  ('NEDS_RA_Stimuli'), 
-  ('NEDS_RA_ESN'), 
-  ('NEDS_RA_Stimuli_ESN'), 
-  ('NEDS_SC_Items'), 
-  ('NEDS_SS'), 
-  ('NEDS_TArabic'), 
-  ('NEDS_TCantonese'), 
-  ('NEDS_TFilipino'), 
-  ('NEDS_TKorean'), 
-  ('NEDS_TMandarin'), 
-  ('NEDS_TPunjabi'), 
-  ('NEDS_TRussianGta'), 
-  ('NEDS_TSpanish'), 
-  ('NEDS_TUkrainian'), 
-  ('NEDS_TVietnamese'), 
-  ('NEDS_TransDirs'), 
-  ('NEDS_SimpDirs'), 
-  ('NEDS_NoiseBuf'), 
-  ('NEDS_Other'),
-  ('NEA0'), 
-  ('NEA_AR'), 
-  ('NEA_RA_Stimuli'), 
-  ('NEA_SC_WritItems'), 
-  ('NEA_STT'), 
-  ('NEA_Abacus'), 
-  ('NEA_Calc'), 
-  ('NEA_MT'), 
-  ('NEA_NumTbl'), 
-  ('NEA_NoiseBuf');
 
 -- the ids in this table has to match ids hardcoded in the application
 INSERT INTO item_trait_score (id, dimension) VALUES
@@ -207,7 +139,8 @@ INSERT INTO math_practice (practice, description) VALUES
 
 INSERT INTO import_content (id, name) VALUES
   (1, 'EXAM'),
-  (2, 'PACKAGE');
+  (2, 'PACKAGE'),
+  (3, 'CODES');
 
 INSERT INTO import_status (id, name) VALUES
   (-5, 'UNKNOWN_ASMT'),
@@ -218,6 +151,11 @@ INSERT INTO import_status (id, name) VALUES
   (0, 'ACCEPTED'),
   (1, 'PROCESSED'),
   (2, 'PUBLISHED');
+
+-- This is intended to trigger a migration of all the tables that define codified data
+INSERT INTO import(status, content, contentType, digest) VALUES
+  (1, 3, 'initial load', 'initial load');
+
 
 -- below data is loaded from https://github.com/SmarterApp/SS_CoreStandards/tree/master/Documents/Imports
 

@@ -93,7 +93,8 @@ INSERT INTO ethnicity (id, name) VALUES
   (4, 'BlackOrAfricanAmerican'),
   (5, 'White'),
   (6, 'NativeHawaiianOrOtherPacificIslander'),
-  (7, 'DemographicRaceTwoOrMoreRaces');
+  (7, 'DemographicRaceTwoOrMoreRaces'),
+  (8, 'Filipino');
 
 INSERT INTO gender (id, name) VALUES
   (1, 'Male'),
