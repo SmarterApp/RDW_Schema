@@ -43,7 +43,7 @@ def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
         group=allTask
         description="Custom task to " + allTask.capitalize() + " all objects in the configured production/development schemas."
     }
-    task("${allTask}AllTest", dependsOn: [project.getTasks().findAll{x-> x.name.contains("-test") && x.property("group") == allTask}]){
+    task("${allTask}All-test", dependsOn: [project.getTasks().findAll{x-> x.name.contains("-test") && x.property("group") == allTask}]){
         group=allTask
         description="Custom task to " + allTask.capitalize() + " all objects in the configured test schemas."
     }

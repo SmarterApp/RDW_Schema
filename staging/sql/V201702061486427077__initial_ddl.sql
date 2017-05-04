@@ -2,9 +2,9 @@
 ** 	Initial script for the SBAC Reporting Staging schema used during migration
 **/
 
-ALTER DATABASE staging CHARACTER SET utf8  COLLATE utf8_unicode_ci;
+ALTER DATABASE `${schemaName}` CHARACTER SET utf8  COLLATE utf8_unicode_ci;
 
-USE staging;
+USE `${schemaName}`;
 
 CREATE TABLE IF NOT EXISTS staging_district (
   id int NOT NULL PRIMARY KEY,
