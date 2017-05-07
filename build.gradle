@@ -1,0 +1,51 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'mysql:mysql-connector-java:5.1.41'
+    }
+}
+
+plugins {
+    id 'org.flywaydb.flyway' version '4.2.0'
+}
+
+//Setting up an easy mapping of simple name to task object
+def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
+               clean: org.flywaydb.gradle.task.FlywayCleanTask,
+               info: org.flywaydb.gradle.task.FlywayInfoTask,
+               validate: org.flywaydb.gradle.task.FlywayValidateTask,
+               baseline: org.flywaydb.gradle.task.FlywayBaselineTask,
+               repair: org.flywaydb.gradle.task.FlywayRepairTask]
+
+//Gradle can't call a single task more than once, because of its design, so
+//we dynamically create individual tasks for each of the available flyway commands
+//on all of our databases (dev and test)
+["reporting", "reporting-test", "warehouse", "warehouse-test", "staging", "staging-test"].each { schema ->
+    taskMap.keySet().each { key ->
+        task("$key$schema", type: taskMap[key]) {
+            group = key
+
+            url = 'jdbc:mysql://localhost:3306/'
+            user = 'root'
+            password = ''
+            driver = 'com.mysql.jdbc.Driver'
+            schemas = [schema]
+            locations = ['filesystem:' + rootDir.path + '/' + schema.split('-')[0] + '/sql']
+            placeholders = ["schemaName": schema]
+        }
+    }
+}
+
+["clean", "migrate"].each { allTask ->
+    task("${allTask}All", dependsOn: [project.getTasks().findAll{x-> !(x.name.contains("-test")) && x.property("group") == allTask}]){
+        group=allTask
+        description="Custom task to " + allTask.capitalize() + " all objects in the configured production/development schemas."
+    }
+    task("${allTask}All-test", dependsOn: [project.getTasks().findAll{x-> x.name.contains("-test") && x.property("group") == allTask}]){
+        group=allTask
+        description="Custom task to " + allTask.capitalize() + " all objects in the configured test schemas."
+    }
+}
+

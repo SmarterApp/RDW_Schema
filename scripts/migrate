@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-if [ -f "flyway.properties" ]; then
-  flyway -configFile=flyway.properties "$@" migrate
-else
-  echo "please run script from appropriate flyway folder"
-fi
