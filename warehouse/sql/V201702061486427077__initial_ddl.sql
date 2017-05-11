@@ -247,9 +247,9 @@ CREATE TABLE IF NOT EXISTS student_ethnicity (
 
 CREATE TABLE IF NOT EXISTS accommodation_translation (
   id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  accommodation_id int NOT NULL,
+  accommodation_id smallint NOT NULL,
   language_id tinyint NOT NULL,
-  label varchar(40),
+  label varchar(40) NOT NULL,
   CONSTRAINT fk__accommodation_translation__accommodation FOREIGN KEY (accommodation_id) REFERENCES accommodation(id),
   CONSTRAINT fk__accommodation_translation__language FOREIGN KEY (language_id) REFERENCES language(id)
 );
