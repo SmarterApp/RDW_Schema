@@ -7,9 +7,9 @@
 **     2. not all data elements from TRT are included, only those that are required for the current reporting
 **/
 
-ALTER DATABASE `${schemaName}` CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+ALTER DATABASE ${schemaName} CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
-USE `${schemaName}`;
+USE ${schemaName};
 
 CREATE TABLE application_schema_version (
    major_version int UNIQUE NOT NULL

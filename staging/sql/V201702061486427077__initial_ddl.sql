@@ -2,9 +2,9 @@
 ** 	Initial script for the SBAC Reporting Staging schema used during migration
 **/
 
-ALTER DATABASE `${schemaName}` CHARACTER SET utf8  COLLATE utf8_unicode_ci;
+ALTER DATABASE ${schemaName} CHARACTER SET utf8  COLLATE utf8_unicode_ci;
 
-USE `${schemaName}`;
+USE ${schemaName};
 
 /** Code tables **/
 
