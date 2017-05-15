@@ -47,14 +47,6 @@ CREATE TABLE IF NOT EXISTS staging_claim (
   description varchar(250) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS staging_subject_claim_score (
-  id tinyint NOT NULL PRIMARY KEY,
-  subject_id tinyint NOT NULL,
-  asmt_type_id tinyint NOT NULL,
-  code varchar(10) NOT NULL,
-  name varchar(250) NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS staging_target (
   id smallint NOT NULL PRIMARY KEY,
   claim_id smallint NOT NULL,

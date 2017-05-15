@@ -19,7 +19,6 @@ TRUNCATE TABLE staging_ethnicity;
 TRUNCATE TABLE staging_gender;
 TRUNCATE TABLE staging_accommodation;
 TRUNCATE TABLE staging_claim;
-TRUNCATE TABLE staging_subject_claim_score;
 TRUNCATE TABLE staging_target;
 TRUNCATE TABLE staging_depth_of_knowledge;
 TRUNCATE TABLE staging_math_practice;
@@ -80,9 +79,6 @@ INSERT INTO staging_accommodation (id, code)
 
 INSERT INTO staging_claim (id, subject_id, code, name, description)
   SELECT id, subject_id, code, name, description from warehouse.claim;
-
-INSERT INTO staging_subject_claim_score (id, subject_id, asmt_type_id, code, name)
-  SELECT id, subject_id, asmt_type_id, code, name from warehouse.subject_claim_score;
 
 INSERT INTO staging_target (id, claim_id, code, description)
   SELECT id, claim_id, code, description from warehouse.target;
@@ -1355,9 +1351,6 @@ WHERE NOT EXISTS(SELECT id FROM staging_accommodation WHERE id = ra.id);
 
 DELETE rc FROM reporting.claim rc
 WHERE NOT EXISTS(SELECT id FROM staging_claim WHERE id = rc.id);
-
-DELETE rc FROM reporting.subject_claim_score rc
-WHERE NOT EXISTS(SELECT id FROM staging_subject_claim_score WHERE id = rc.id);
 
 DELETE rt FROM reporting.target rt
 WHERE NOT EXISTS(SELECT id FROM staging_target WHERE id = rt.id);
