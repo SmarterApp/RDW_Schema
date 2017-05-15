@@ -22,7 +22,7 @@ def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
 //Gradle can't call a single task more than once, because of its design, so
 //we dynamically create individual tasks for each of the available flyway commands
 //on all of our databases (dev and test)
-["reporting", "reporting-test", "warehouse", "warehouse-test", "staging", "staging-test", "spring_batch_reporting", "spring_batch_reporting-test"].each { schema ->
+["reporting", "reporting_test", "warehouse", "warehouse_test", "staging", "staging_test", "spring_batch_reporting", "spring_batch_reporting_test"].each { schema ->
     taskMap.keySet().each { key ->
         task("$key$schema", type: taskMap[key]) {
             group = key
@@ -32,18 +32,18 @@ def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
             password = ''
             driver = 'com.mysql.jdbc.Driver'
             schemas = [schema]
-            locations = ['filesystem:' + rootDir.path + '/' + schema.split('-')[0] + '/sql']
+            locations = ['filesystem:' + rootDir.path + '/' + schema.split('_test')[0] + '/sql']
             placeholders = ["schemaName": schema]
         }
     }
 }
 
 ["clean", "migrate"].each { allTask ->
-    task("${allTask}All", dependsOn: [project.getTasks().findAll{x-> !(x.name.contains("-test")) && x.property("group") == allTask}]){
+    task("${allTask}All", dependsOn: [project.getTasks().findAll{x-> !(x.name.contains("_test")) && x.property("group") == allTask}]){
         group=allTask
         description="Custom task to " + allTask.capitalize() + " all objects in the configured production/development schemas."
     }
-    task("${allTask}All-test", dependsOn: [project.getTasks().findAll{x-> x.name.contains("-test") && x.property("group") == allTask}]){
+    task("${allTask}All-test", dependsOn: [project.getTasks().findAll{x-> x.name.contains("_test") && x.property("group") == allTask}]){
         group=allTask
         description="Custom task to " + allTask.capitalize() + " all objects in the configured test schemas."
     }

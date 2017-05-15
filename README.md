@@ -11,18 +11,18 @@ Gradle can perform all of the flyway tasks defined [here](https://flywaydb.org/d
 
 To install or migrate, run:
 ```bash
-RDW_Schema$ ./gradlew migrateWarehouse (or migrateWarehouse-test)
+RDW_Schema$ ./gradlew migrateWarehouse (or migratewarehouse_test)
 OR
-RDW_Schema$ ./gradlew migrateReporting (or migrateReporting-test)
+RDW_Schema$ ./gradlew migrateReporting (or migratereporting_test)
 OR
 RDW_Schema$ ./gradlew migrateAll (migrates the dev and test instances for the schemas)
 ```
 
 #### To wipe out the schema
 ```bash
-RDW_Schema$ ./gradlew cleanWarehouse (or cleanWarehouse-test)
+RDW_Schema$ ./gradlew cleanWarehouse (or cleanwarehouse_test)
 OR
-RDW_Schema$ ./gradlew cleanReporting (or cleanReporting-test)
+RDW_Schema$ ./gradlew cleanReporting (or cleanreporting_test)
 OR
 RDW_Schema$ ./gradlew cleanAll 
 ```
