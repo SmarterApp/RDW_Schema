@@ -7,9 +7,9 @@
 **     2. not all data elements from TRT are included, only those that are required for the current reporting
 **/
 
-ALTER DATABASE `${schemaName}` CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+ALTER DATABASE ${schemaName} CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
-USE `${schemaName}`;
+USE ${schemaName};
 
 CREATE TABLE application_schema_version (
    major_version int UNIQUE NOT NULL
@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS item (
   allow_calc tinyint,
   dok_id tinyint NOT NULL,
   difficulty float NOT NULL,
-  max_points smallint UNSIGNED NOT NULL,
+  max_points tinyint UNSIGNED NOT NULL,
   CONSTRAINT fk__item__claim FOREIGN KEY (claim_id) REFERENCES claim(id),
   CONSTRAINT fk__item__target FOREIGN KEY (target_id) REFERENCES target(id),
   CONSTRAINT fk__item__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
@@ -296,11 +296,11 @@ CREATE TABLE IF NOT EXISTS iab_exam_item (
   score_status varchar(50),
   position int NOT NULL,
   response text,
-  trait_evidence_elaboration_score smallint,
+  trait_evidence_elaboration_score tinyint,
   trait_evidence_elaboration_score_status varchar(50),
-  trait_organization_purpose_score smallint,
+  trait_organization_purpose_score tinyint,
   trait_organization_purpose_score_status varchar(50),
-  trait_conventions_score smallint,
+  trait_conventions_score tinyint,
   trait_conventions_score_status varchar(50),
   CONSTRAINT fk__iab_exam_item__exam FOREIGN KEY (iab_exam_id) REFERENCES iab_exam(id),
   CONSTRAINT fk__iab_exam_item__item FOREIGN KEY (item_id) REFERENCES item(id)
@@ -372,11 +372,11 @@ CREATE TABLE IF NOT EXISTS exam_item (
   score_status varchar(50),
   position int NOT NULL,
   response text,
-  trait_evidence_elaboration_score smallint,
+  trait_evidence_elaboration_score tinyint,
   trait_evidence_elaboration_score_status varchar(50),
-  trait_organization_purpose_score smallint,
+  trait_organization_purpose_score tinyint,
   trait_organization_purpose_score_status varchar(50),
-  trait_conventions_score smallint,
+  trait_conventions_score tinyint,
   trait_conventions_score_status varchar(50),
   CONSTRAINT fk__exam_item__exam FOREIGN KEY (exam_id) REFERENCES exam(id),
   CONSTRAINT fk__exam_item__item FOREIGN KEY (item_id) REFERENCES item(id)

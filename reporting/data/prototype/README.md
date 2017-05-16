@@ -19,4 +19,4 @@ mysql> exit;
 mysql -u root -p -h localhost warehouse < warehouse.sql
 
 ```
-migrate-hack.sql would move the data from warehouse to the reporting mart. 
+Staging/migrate.sql can be used to move data from warehouse to the reporting.
