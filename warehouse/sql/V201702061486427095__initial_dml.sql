@@ -13,8 +13,8 @@ INSERT INTO subject (id, name) VALUES
 
 INSERT INTO language (id, code) VALUES
   (1, 'eng'),
-  (2, 'es'),
-  (3, 'vi');
+  (2, 'spa'),
+  (3, 'vie');
 
 INSERT INTO grade (id, code, name) VALUES
   (16, 'IT', 'Infant/toddler'),
