@@ -3,14 +3,13 @@
 USE ${schemaName};
 
 CREATE TABLE IF NOT EXISTS language (
-  id tinyint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  id tinyint NOT NULL PRIMARY KEY,
   code varchar(3) NOT NULL UNIQUE
 );
 
 /** Accommodation Translations **/
 
 CREATE TABLE IF NOT EXISTS accommodation_translation (
-  id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   accommodation_id smallint NOT NULL,
   language_id tinyint NOT NULL,
   label varchar(40) NOT NULL,
