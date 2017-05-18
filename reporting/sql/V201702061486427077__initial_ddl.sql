@@ -85,8 +85,8 @@ CREATE TABLE IF NOT EXISTS asmt (
   type_id tinyint NOT NULL,
   subject_id tinyint NOT NULL,
   school_year smallint NOT NULL,
-  name varchar(250),
-  label varchar(255),
+  name varchar(250) NOT NULL,
+  label varchar(255) NOT NULL,
   version varchar(30),
   import_id bigint NOT NULL,
   CONSTRAINT fk__asmt__grade FOREIGN KEY (grade_id) REFERENCES grade(id),
@@ -220,7 +220,6 @@ CREATE TABLE IF NOT EXISTS student (
  );
 
 CREATE TABLE IF NOT EXISTS student_ethnicity (
-  id int NOT NULL PRIMARY KEY,
   ethnicity_id tinyint NOT NULL,
   student_id int NOT NULL
 );
@@ -274,10 +273,9 @@ CREATE TABLE IF NOT EXISTS iab_exam (
   asmt_id int NOT NULL,
   asmt_version varchar(30),
   opportunity int,
-  status varchar(50),
   completeness_id tinyint NOT NULL,
   administration_condition_id tinyint NOT NULL,
-  session_id varchar(128),
+  session_id varchar(128) NOT NULL,
   category tinyint NOT NULL,
   scale_score smallint NOT NULL,
   scale_score_std_err float NOT NULL,
@@ -332,10 +330,9 @@ CREATE TABLE IF NOT EXISTS exam (
   asmt_id int NOT NULL,
   asmt_version varchar(30),
   opportunity int,
-  status varchar(50),
   completeness_id tinyint NOT NULL,
   administration_condition_id tinyint NOT NULL,
-  session_id varchar(128),
+  session_id varchar(128) NOT NULL,
   scale_score smallint,
   scale_score_std_err float,
   achievement_level tinyint,
@@ -388,4 +385,3 @@ CREATE TABLE IF NOT EXISTS exam_available_accommodation (
   CONSTRAINT fk__exam_available_accommodation__exam FOREIGN KEY (exam_id) REFERENCES exam(id),
   CONSTRAINT fk__exam_available_accommodation_accomodation FOREIGN KEY (accommodation_id) REFERENCES accommodation(id)
 );
-

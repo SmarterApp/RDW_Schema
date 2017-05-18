@@ -119,7 +119,6 @@ CREATE TABLE IF NOT EXISTS staging_student (
 );
 
 CREATE TABLE IF NOT EXISTS staging_student_ethnicity (
-  id int NOT NULL PRIMARY KEY,
   ethnicity_id tinyint NOT NULL,
   student_id int NOT NULL
 );
@@ -217,10 +216,9 @@ CREATE TABLE IF NOT EXISTS staging_iab_exam (
   asmt_id int NOT NULL,
   asmt_version varchar(30),
   opportunity int,
-  status varchar(50),
   completeness_id tinyint NOT NULL,
   administration_condition_id tinyint NOT NULL,
-  session_id varchar(128),
+  session_id varchar(128) NOT NULL,
   category tinyint,
   scale_score smallint,
   scale_score_std_err float,
@@ -279,10 +277,9 @@ CREATE TABLE IF NOT EXISTS staging_exam (
   asmt_id int NOT NULL,
   asmt_version varchar(30),
   opportunity int,
-  status varchar(50),
   completeness_id tinyint NOT NULL,
   administration_condition_id tinyint NOT NULL,
-  session_id varchar(128),
+  session_id varchar(128) NOT NULL,
   scale_score smallint,
   scale_score_std_err float,
   achievement_level tinyint,

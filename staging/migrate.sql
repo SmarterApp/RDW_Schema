@@ -150,9 +150,8 @@ INSERT INTO staging_student (id, ssid, last_or_surname, first_name, middle_name,
     ws.import_id IN (SELECT id FROM warehouse.import WHERE id >= -1);
 
 -- this includes updates/inserts but not deletes
-INSERT INTO staging_student_ethnicity (id, ethnicity_id, student_id)
+INSERT INTO staging_student_ethnicity (ethnicity_id, student_id)
   SELECT
-    wse.id,
     wse.ethnicity_id,
     wse.student_id
   FROM warehouse.student_ethnicity wse
@@ -293,7 +292,7 @@ INSERT INTO staging_iab_exam_student (id, grade_id, student_id, school_id, iep, 
     AND wie.scale_score is not null
     AND wie.deleted = 0; -- delete will be taken care on the 'master' level
 
-INSERT INTO staging_iab_exam (id, iab_exam_student_id, school_year, asmt_id, asmt_version, opportunity, status,
+INSERT INTO staging_iab_exam (id, iab_exam_student_id, school_year, asmt_id, asmt_version, opportunity,
                               completeness_id, administration_condition_id, session_id, category, scale_score, scale_score_std_err,
                               completed_at, deleted, import_id, migrate_id)
   SELECT
@@ -303,7 +302,6 @@ INSERT INTO staging_iab_exam (id, iab_exam_student_id, school_year, asmt_id, asm
     wie.asmt_id,
     wie.asmt_version,
     wie.opportunity,
-    wie.status,
     wie.completeness_id,
     wie.administration_condition_id,
     wie.session_id,
@@ -388,7 +386,7 @@ INSERT INTO staging_exam_student (id, grade_id, student_id, school_id, iep, lep,
     we.import_id IN (SELECT id FROM warehouse.import WHERE id >= -1)
     AND we.deleted = 0; -- delete will be taken care on the 'master' level
 
-INSERT INTO staging_exam (id, exam_student_id, school_year, asmt_id, asmt_version, opportunity, status,
+INSERT INTO staging_exam (id, exam_student_id, school_year, asmt_id, asmt_version, opportunity,
                           completeness_id, administration_condition_id, session_id, achievement_level, scale_score, scale_score_std_err,
                           completed_at, deleted, import_id, migrate_id)
   SELECT
@@ -398,7 +396,6 @@ INSERT INTO staging_exam (id, exam_student_id, school_year, asmt_id, asmt_versio
     we.asmt_id,
     we.asmt_version,
     we.opportunity,
-    we.status,
     we.completeness_id,
     we.administration_condition_id,
     we.session_id,
@@ -587,26 +584,6 @@ INSERT INTO reporting.claim ( id, subject_id, code, name, description)
     sc.description
   FROM staging_claim sc
     LEFT JOIN reporting.claim rc ON rc.id = sc.id
-  WHERE rc.id IS NULL;
-
--- ------------ Subject Claim Score --------------------------------------------------------------------
-UPDATE reporting.subject_claim_score rc
-  JOIN staging_subject_claim_score sc ON sc.id = rc.id
-SET
-  rc.subject_id = sc.subject_id,
-  rc.asmt_type_id = sc.asmt_type_id,
-  rc.code = sc.code,
-  rc.name = sc.name;
-
-INSERT INTO reporting.subject_claim_score ( id, subject_id, asmt_type_id, code, name)
-  SELECT
-    sc.id,
-    sc.subject_id,
-    sc.asmt_type_id,
-    sc.code,
-    sc.name
-  FROM staging_subject_claim_score sc
-    LEFT JOIN reporting.subject_claim_score rc ON rc.id = sc.id
   WHERE rc.id IS NULL;
 
 -- ------------ Target ---------------------------------------------------------------------------
@@ -826,8 +803,8 @@ INSERT INTO reporting.student (id, ssid, last_or_surname, first_name, middle_nam
 
 -- TODO: clean this up:
 DELETE FROM reporting.student_ethnicity WHERE student_id in (SELECT id FROM staging_student);
-INSERT INTO reporting.student_ethnicity( id, student_id, ethnicity_id)
-  SELECT id, student_id, ethnicity_id from staging_student_ethnicity;
+INSERT INTO reporting.student_ethnicity( student_id, ethnicity_id)
+  SELECT student_id, ethnicity_id from staging_student_ethnicity;
 
 
 -- Student Group ---------------------------------------------------------------------------
@@ -1001,7 +978,6 @@ SET
   rie.asmt_id = sie.asmt_id,
   rie.asmt_version = sie.asmt_version,
   rie.opportunity = sie.opportunity,
-  rie.status = sie.status,
   rie.completeness_id = sie.completeness_id,
   rie.administration_condition_id = sie.administration_condition_id,
   rie.session_id = sie.session_id,
@@ -1014,7 +990,7 @@ WHERE sie.deleted = 0;
 
 INSERT INTO reporting.iab_exam (id, grade_id, student_id, school_id, iep, lep, section504, economic_disadvantage,
                                 migrant_status, eng_prof_lvl, t3_program_type, language_code, prim_disability_type,
-                                school_year, asmt_id, asmt_version, opportunity, status, completeness_id,
+                                school_year, asmt_id, asmt_version, opportunity, completeness_id,
                                 administration_condition_id, session_id, category, scale_score, scale_score_std_err,
                                 import_id)
   SELECT
@@ -1035,7 +1011,6 @@ INSERT INTO reporting.iab_exam (id, grade_id, student_id, school_id, iep, lep, s
     sie.asmt_id,
     sie.asmt_version,
     sie.opportunity,
-    sie.status,
     sie.completeness_id,
     sie.administration_condition_id,
     sie.session_id,
@@ -1162,7 +1137,6 @@ SET
   re.asmt_id = se.asmt_id,
   re.asmt_version = se.asmt_version,
   re.opportunity = se.opportunity,
-  re.status = se.status,
   re.completeness_id = se.completeness_id,
   re.administration_condition_id = se.administration_condition_id,
   re.session_id = se.session_id,
@@ -1187,7 +1161,7 @@ WHERE se.deleted = 0;
 
 INSERT INTO reporting.exam (id, grade_id, student_id, school_id, iep, lep, section504, economic_disadvantage,
                             migrant_status, eng_prof_lvl, t3_program_type, language_code, prim_disability_type,
-                            school_year, asmt_id, asmt_version, opportunity, status, completeness_id,
+                            school_year, asmt_id, asmt_version, opportunity, completeness_id,
                             administration_condition_id, session_id, achievement_level, scale_score, scale_score_std_err,
                             import_id,
                             claim1_scale_score, claim1_scale_score_std_err, claim1_category,
@@ -1212,7 +1186,6 @@ INSERT INTO reporting.exam (id, grade_id, student_id, school_id, iep, lep, secti
     se.asmt_id,
     se.asmt_version,
     se.opportunity,
-    se.status,
     se.completeness_id,
     se.administration_condition_id,
     se.session_id,
@@ -1368,10 +1341,10 @@ DELETE ridc FROM reporting.item_difficulty_cuts ridc
 WHERE NOT EXISTS(SELECT id FROM staging_item_difficulty_cuts WHERE id = ridc.id);
 
 UPDATE reporting.migrate
- SET
-   status = 20,
-   updated = CURRENT_TIMESTAMP,
-   message = 'manual migrate'
+SET
+  status = 20,
+  updated = CURRENT_TIMESTAMP,
+  message = 'manual migrate'
 WHERE id = -11;
 
 select * from reporting.migrate where id = -11;
