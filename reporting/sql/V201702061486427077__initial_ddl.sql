@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS migrate_status (
 );
 
 CREATE TABLE IF NOT EXISTS migrate (
-  id bigint NOT NULL PRIMARY KEY,
+  id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  job_id bigint NOT NULL,
   status tinyint NOT NULL,
   first_import_id bigint NOT NULL,
   last_import_id bigint NOT NULL,
