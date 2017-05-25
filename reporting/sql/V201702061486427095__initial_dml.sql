@@ -22,11 +22,6 @@ INSERT INTO asmt_type (id, code, name) VALUES
   (2, 'iab', 'Interim Assessment Block'),
   (3, 'sum', 'Summative');
 
-INSERT INTO language (id, code) VALUES
-  (1, 'eng'),
-  (2, 'spa'),
-  (3, 'vie');
-
 INSERT INTO subject_claim_score (id, subject_id, asmt_type_id, code, name) VALUES
   (1,  1, 1, '1', 'Concepts' ),
   (2,  1, 1, 'SOCK_2', 'PSMDA (Problem Solving and Modeling & Data Analysis)'),
