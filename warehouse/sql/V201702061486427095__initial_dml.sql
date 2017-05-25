@@ -141,7 +141,6 @@ INSERT INTO import_content (id, name) VALUES
   (1, 'EXAM'),
   (2, 'PACKAGE'),
   (3, 'CODES'),
-
   (4, 'ORGANIZATION'),
   (5, 'GROUPS');
 
