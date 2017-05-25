@@ -140,7 +140,10 @@ INSERT INTO math_practice (practice, description) VALUES
 INSERT INTO import_content (id, name) VALUES
   (1, 'EXAM'),
   (2, 'PACKAGE'),
-  (3, 'CODES');
+  (3, 'CODES'),
+
+  (4, 'ORGANIZATION'),
+  (5, 'GROUPS');
 
 INSERT INTO import_status (id, name) VALUES
   (-5, 'UNKNOWN_ASMT'),
@@ -156,6 +159,10 @@ INSERT INTO import_status (id, name) VALUES
 INSERT INTO import(status, content, contentType, digest) VALUES
   (1, 3, 'initial load', 'initial load');
 
+INSERT INTO language (id, code) VALUES
+  (1, 'eng'),
+  (2, 'spa'),
+  (3, 'vie');
 
 -- below data is loaded from https://github.com/SmarterApp/SS_CoreStandards/tree/master/Documents/Imports
 

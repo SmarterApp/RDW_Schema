@@ -84,6 +84,23 @@ CREATE TABLE IF NOT EXISTS accommodation (
   code varchar(25) NOT NULL UNIQUE
 );
 
+
+CREATE TABLE IF NOT EXISTS language (
+  id tinyint NOT NULL PRIMARY KEY,
+  code varchar(3) NOT NULL UNIQUE
+);
+
+/** Accommodation Translations **/
+
+CREATE TABLE IF NOT EXISTS accommodation_translation (
+  accommodation_id smallint NOT NULL,
+  language_id tinyint NOT NULL,
+  label varchar(40) NOT NULL,
+  CONSTRAINT uk__accommodation_id__language_id UNIQUE KEY (accommodation_id, language_id),
+  CONSTRAINT fk__accommodation_translation__accommodation FOREIGN KEY (accommodation_id) REFERENCES accommodation(id),
+  CONSTRAINT fk__accommodation_translation__language FOREIGN KEY (language_id) REFERENCES language(id)
+);
+
 /** Assessment Packages related data **/
 
 CREATE TABLE IF NOT EXISTS asmt (
@@ -93,16 +110,20 @@ CREATE TABLE IF NOT EXISTS asmt (
   type_id tinyint NOT NULL,
   subject_id tinyint NOT NULL,
   school_year smallint NOT NULL,
-  name varchar(250),
-  label varchar(255), -- TODO: change this to NOT NULL when we do not need a hack code that creates assmt
+  name varchar(250) NOT NULL,
+  label varchar(255) NOT NULL,
   version varchar(30),
   import_id bigint NOT NULL,
+  update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
   CONSTRAINT fk__asmt__grade FOREIGN KEY (grade_id) REFERENCES grade(id),
   CONSTRAINT fk__asmt__type FOREIGN KEY (type_id) REFERENCES asmt_type(id),
   CONSTRAINT fk__asmt__subject FOREIGN KEY (subject_id) REFERENCES subject(id),
-  CONSTRAINT fk__asmt__import FOREIGN KEY (import_id) REFERENCES import(id)
+  CONSTRAINT fk__asmt__import FOREIGN KEY (import_id) REFERENCES import(id),
+  CONSTRAINT fk__asmt__update_import FOREIGN KEY (update_import_id) REFERENCES import(id)
 );
+-- TODO: revisit this index
+ALTER TABLE asmt ADD INDEX idx__asmt_imports_deleted (import_id, update_import_id, deleted);
 
 CREATE TABLE IF NOT EXISTS asmt_score (
   asmt_id int NOT NULL PRIMARY KEY,
@@ -204,10 +225,15 @@ CREATE TABLE IF NOT EXISTS school (
   natural_id varchar(40) NOT NULL UNIQUE,
   name varchar(100) NOT NULL,
   import_id bigint NOT NULL,
+  update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
   CONSTRAINT fk__school__district FOREIGN KEY (district_id) REFERENCES district(id),
-  CONSTRAINT fk__school__import FOREIGN KEY (import_id) REFERENCES import(id)
+  CONSTRAINT fk__school__import FOREIGN KEY (import_id) REFERENCES import(id),
+  CONSTRAINT fk__school__update_import FOREIGN KEY (update_import_id) REFERENCES import(id)
 );
+-- TODO: revisit this index
+ALTER TABLE school ADD INDEX idx__school_imports_deleted (import_id, update_import_id, deleted);
+
 
 CREATE TABLE IF NOT EXISTS state (
   code varchar(2) NOT NULL UNIQUE
@@ -228,12 +254,15 @@ CREATE TABLE IF NOT EXISTS student (
   lep_exit_at date,
   birthday date NOT NULL,
   import_id bigint NOT NULL,
+  update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
-  CONSTRAINT fk__student__import FOREIGN KEY (import_id) REFERENCES import(id)
+  CONSTRAINT fk__student__import FOREIGN KEY (import_id) REFERENCES import(id),
+  CONSTRAINT fk__student__update_import FOREIGN KEY (update_import_id) REFERENCES import(id)
  );
+-- TODO: revisit this index
+ALTER TABLE student ADD INDEX idx__asmt_imports_deleted (import_id, update_import_id, deleted);
 
 CREATE TABLE IF NOT EXISTS student_ethnicity (
-  id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   ethnicity_id tinyint NOT NULL,
   student_id int NOT NULL
 );
@@ -248,12 +277,17 @@ CREATE TABLE IF NOT EXISTS student_group (
   creator varchar(250),
   created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   import_id bigint NOT NULL,
+  update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
   CONSTRAINT uk__name__school__year UNIQUE INDEX (name, school_id, school_year),
   CONSTRAINT fk__student_group__school FOREIGN KEY (school_id) REFERENCES school(id),
   CONSTRAINT fk__student_group__subject FOREIGN KEY (subject_id) REFERENCES subject(id),
-  CONSTRAINT fk__student_group__import FOREIGN KEY (import_id) REFERENCES import(id)
+  CONSTRAINT fk__student_group__import FOREIGN KEY (import_id) REFERENCES import(id),
+  CONSTRAINT fk__student_group__update_import FOREIGN KEY (update_import_id) REFERENCES import(id)
 );
+-- TODO: revisit this index
+ALTER TABLE student_group ADD INDEX idx__asmt_imports_deleted (import_id, update_import_id, deleted, active);
+
 
 CREATE TABLE IF NOT EXISTS student_group_membership (
   student_group_id int NOT NULL,
@@ -297,20 +331,23 @@ CREATE TABLE IF NOT EXISTS iab_exam (
   asmt_id int NOT NULL,
   asmt_version varchar(30),
   opportunity int,
-  status varchar(50),
   completeness_id tinyint NOT NULL,
   administration_condition_id tinyint NOT NULL,
-  session_id varchar(128), -- TODO: change to NOT NULL when data generator has it
+  session_id varchar(128) NOT NULL,
   category tinyint,
   scale_score float,
   scale_score_std_err float,
   completed_at timestamp(0) NOT NULL,
   import_id bigint NOT NULL,
+  update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
   CONSTRAINT fk__iab_exam__iab_exam_student FOREIGN KEY (iab_exam_student_id) REFERENCES iab_exam_student(id),
   CONSTRAINT fk__iab_exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
-  CONSTRAINT fk__iab_exam__import FOREIGN KEY (import_id) REFERENCES import(id)
+  CONSTRAINT fk__iab_exam__import FOREIGN KEY (import_id) REFERENCES import(id),
+  CONSTRAINT fk__iab_exam__update_import FOREIGN KEY (update_import_id) REFERENCES import(id)
 );
+-- TODO: revisit this index
+ALTER TABLE iab_exam ADD INDEX idx__asmt_imports_deleted (import_id, update_import_id, deleted);
 
 CREATE TABLE IF NOT EXISTS iab_exam_item (
   id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -362,20 +399,24 @@ CREATE TABLE IF NOT EXISTS exam (
   asmt_id int NOT NULL,
   asmt_version varchar(30),
   opportunity int,
-  status varchar(50),
   completeness_id tinyint NOT NULL,
   administration_condition_id tinyint NOT NULL,
-  session_id varchar(128),  -- TODO: change to NOT NULL when data generator has it
+  session_id varchar(128) NOT NULL,
   scale_score float,
   scale_score_std_err float,
   achievement_level tinyint,
   completed_at timestamp(0) NOT NULL,
   import_id bigint NOT NULL,
+  update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
   CONSTRAINT fk__exam__exam_student FOREIGN KEY (exam_student_id) REFERENCES exam_student(id),
   CONSTRAINT fk__exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
-  CONSTRAINT fk__exam__import FOREIGN KEY (import_id) REFERENCES import(id)
+  CONSTRAINT fk__exam__import FOREIGN KEY (import_id) REFERENCES import(id),
+  CONSTRAINT fk__exam__update_import FOREIGN KEY (update_import_id) REFERENCES import(id)
 );
+-- TODO: revisit this index
+ALTER TABLE exam ADD INDEX idx__asmt_imports_deleted (import_id, update_import_id, deleted);
+
 
 CREATE TABLE IF NOT EXISTS exam_item (
   id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY, 
@@ -466,12 +507,12 @@ CREATE PROCEDURE student_upsert(IN  p_ssid                          VARCHAR(65),
           lep_entry_at                  = p_lep_entry_at,
           lep_exit_at                   = p_lep_exit_at,
           birthday                      = p_birthday,
-          import_id                     = p_import_id
+          update_import_id                 = p_import_id
         WHERE id = p_id;
       END IF;
     ELSE
-      INSERT INTO student (ssid, last_or_surname, first_name, middle_name, gender_id, first_entry_into_us_school_at, lep_entry_at, lep_exit_at, birthday, import_id)
-      VALUES (p_ssid, p_last_or_surname, p_first_name, p_middle_name, p_gender_id, p_first_entry_into_us_school_at, p_lep_entry_at, p_lep_exit_at, p_birthday, p_import_id);
+      INSERT INTO student (ssid, last_or_surname, first_name, middle_name, gender_id, first_entry_into_us_school_at, lep_entry_at, lep_exit_at, birthday, import_id, update_import_id)
+      VALUES (p_ssid, p_last_or_surname, p_first_name, p_middle_name, p_gender_id, p_first_entry_into_us_school_at, p_lep_entry_at, p_lep_exit_at, p_birthday, p_import_id, p_import_id);
 
       SELECT id INTO p_id FROM student WHERE ssid = p_ssid;
     END IF;
@@ -550,17 +591,17 @@ CREATE PROCEDURE school_upsert(IN  p_district_name       VARCHAR(100),
       THEN
         UPDATE school
         SET
-          name        = p_name,
-          natural_id  = p_natural_id,
-          district_id = p_district_id,
-          import_id   = p_import_id
+          name            = p_name,
+          natural_id      = p_natural_id,
+          district_id     = p_district_id,
+          update_import_id   = p_import_id
         WHERE id = p_id;
 
       END IF;
 
     ELSE
-      INSERT INTO school (district_id, name, natural_id, import_id)
-      VALUES (p_district_id, p_name, p_natural_id, p_import_id);
+      INSERT INTO school (district_id, name, natural_id, import_id, update_import_id)
+      VALUES (p_district_id, p_name, p_natural_id, p_import_id, p_import_id);
 
       SELECT id INTO p_id FROM school WHERE natural_id = p_natural_id;
 
