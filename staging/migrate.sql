@@ -50,6 +50,9 @@ TRUNCATE TABLE staging_asmt;
 TRUNCATE TABLE staging_asmt_score;
 TRUNCATE TABLE staging_item;
 
+TRUNCATE TABLE staging_acommodation_translation;
+TRUNCATE TABLE staging_language;
+
 -- ----------------------------------------------------------------------
 -- load data into staging table
 -- ----------------------------------------------------------------------
@@ -94,6 +97,12 @@ INSERT INTO staging_item_trait_score (id, dimension)
 
 INSERT INTO staging_item_difficulty_cuts (id, asmt_type_id, subject_id,grade_id, moderate_low_end, difficult_low_end)
   SELECT id, asmt_type_id, subject_id,grade_id, moderate_low_end, difficult_low_end from warehouse.item_difficulty_cuts;
+
+INSERT INTO staging_language (id, code)
+    SELECT id, code from warehouse.language;
+
+INSERT INTO staging_accommodation_translation (accommodation_id, language_id, label)
+    SELECT accommodation_id, language_id, label from warehouse.accommodation_translation;
 
 -- School  --------------------------------------------------------------
 
@@ -676,6 +685,39 @@ INSERT INTO reporting.item_difficulty_cuts (id, asmt_type_id, subject_id, grade_
   FROM staging_item_difficulty_cuts sidc
     LEFT JOIN reporting.item_difficulty_cuts ridc ON ridc.id = sidc.id
   WHERE ridc.id IS NULL;
+
+-- ------------ Language ---------------------------------------------------------------------------------------
+UPDATE reporting.language rl
+  JOIN staging.staging_language sl ON sl.id = rl.id
+SET
+  rl.code = sl.code;
+
+INSERT INTO reporting.language ( id, code)
+  SELECT
+    sl.id,
+    sl.code
+  FROM staging.staging_language sl
+    LEFT JOIN reporting.language rl ON rl.id = sl.id
+  WHERE rl.id IS NULL;
+
+-- ------------ Accommodation_Translation ----------------------------------------------------------------------
+UPDATE reporting.accommodation_translation rat
+  JOIN staging.staging_accommodation_translation sat
+    ON sat.accommodation_id = rat.accommodation_id AND
+       sat.language_id = rat.language_id
+SET
+  rat.label = sat.label;
+
+INSERT INTO reporting.accommodation_translation (accommodation_id, language_id, label)
+  SELECT
+    sat.accommodation_id,
+    sat.language_id,
+    sat.label
+  FROM staging.staging_accommodation_translation sat
+    LEFT JOIN reporting.accommodation_translation rat
+      ON rat.accommodation_id = sat.accommodation_id AND
+         rat.language_id = sat.language_id
+  WHERE rat.accommodation_id IS NULL;
 
 
 -- -----------------------------------------------------------------------------------------
@@ -1318,6 +1360,13 @@ WHERE NOT EXISTS(SELECT id FROM staging_ethnicity WHERE id = re.id);
 
 DELETE rg FROM reporting.gender rg
 WHERE NOT EXISTS(SELECT id FROM staging_gender WHERE id = rg.id);
+
+DELETE rat FROM reporting.accommodation_translation rat
+WHERE NOT EXISTS(SELECT accommodation_id, language_id FROM staging.staging_accommodation_translation
+  WHERE accommodation_id = rat.accommodation_id AND language_id = rat.language_id);
+
+DELETE rl FROM reporting.language rl
+WHERE NOT EXISTS(SELECT id FROM staging.staging_language WHERE id = rl.id);
 
 DELETE ra FROM reporting.accommodation ra
 WHERE NOT EXISTS(SELECT id FROM staging_accommodation WHERE id = ra.id);

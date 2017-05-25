@@ -39,6 +39,17 @@ CREATE TABLE IF NOT EXISTS staging_accommodation (
   code varchar(25) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS staging_language (
+  id smallint NOT NULL PRIMARY KEY,
+  code varchar(25) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS staging_accommodation_translation (
+  accommodation_id smallint NOT NULL,
+  language_id tinyint NOT NULL,
+  label varchar(40) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS staging_claim (
   id smallint NOT NULL PRIMARY KEY,
   subject_id tinyint NOT NULL,
