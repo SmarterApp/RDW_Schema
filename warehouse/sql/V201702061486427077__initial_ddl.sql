@@ -15,6 +15,59 @@ CREATE TABLE application_schema_version (
    major_version int UNIQUE NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS sequence (
+  name varchar(100) NOT NULL PRIMARY KEY,
+  increment bigint NOT NULL DEFAULT 1,
+  cur_value bigint NOT NULL DEFAULT 1
+);
+
+/**
+ * Return the next value for a named sequence and advance the sequence.
+ * The sequence must exist before calling this; for example,
+ *   INSERT INTO sequence (name) VALUES ('mysequence');
+ *   setval('mysequence', 1000);
+ *
+ * @param name of sequence
+ * @return next value in the sequence
+ */
+DROP FUNCTION IF EXISTS nextval;
+DELIMITER //
+CREATE FUNCTION nextval (seqname varchar(100))
+  RETURNS bigint NOT DETERMINISTIC
+  BEGIN
+    DECLARE curval bigint;
+    SELECT cur_value INTO curval FROM sequence WHERE name = seqname;
+    IF curval IS NOT NULL THEN
+      UPDATE sequence SET cur_value = cur_value + increment WHERE name = seqname;
+    END IF;
+    RETURN curval;
+  END //
+DELIMITER ;
+
+/**
+ * Set the next value for a named sequence. This will create the sequence if necessary.
+ *
+ * @param name sequence name
+ * @param newval sequence next value
+ * @return next value in the sequence (same as newval)
+ */
+DROP FUNCTION IF EXISTS setval;
+DELIMITER //
+CREATE FUNCTION setval (seqname varchar(100), newval bigint)
+  RETURNS bigint NOT DETERMINISTIC
+  BEGIN
+    DECLARE curval bigint;
+    SELECT cur_value INTO curval FROM sequence WHERE name = seqname;
+    IF curval IS NOT NULL THEN
+      UPDATE sequence SET cur_value = newval WHERE name = seqname;
+    ELSE
+      INSERT INTO sequence (name, cur_value) VALUES (seqname, newval);
+    END IF;
+    RETURN newval;
+  END //
+DELIMITER ;
+
+
 /** Import **/
 
 CREATE TABLE IF NOT EXISTS import_content (
@@ -350,7 +403,7 @@ CREATE TABLE IF NOT EXISTS iab_exam_student (
  );
 
 CREATE TABLE IF NOT EXISTS iab_exam (
-  id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  id bigint PRIMARY KEY DEFAULT 0,  # cross-table auto-increment with exam
   iab_exam_student_id bigint NOT NULL,
   school_year smallint NOT NULL,
   asmt_id int NOT NULL,
@@ -418,7 +471,7 @@ CREATE TABLE IF NOT EXISTS exam_student (
  );
 
 CREATE TABLE IF NOT EXISTS exam (
-  id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  id bigint PRIMARY KEY DEFAULT 0,  # cross-table auto-increment with iab_exam
   exam_student_id bigint NOT NULL,
   school_year smallint NOT NULL,
   asmt_id int NOT NULL,
@@ -633,3 +686,56 @@ CREATE PROCEDURE school_upsert(IN  p_district_name       VARCHAR(100),
     END IF;
   END; //
 DELIMITER ;
+
+
+/** Cross-table auto-increment for exam and iab_exam **/
+
+INSERT IGNORE INTO sequence (name) VALUES ('exam_id');
+
+DROP PROCEDURE IF EXISTS exam_insert_helper;
+DELIMITER //
+CREATE PROCEDURE exam_insert_helper(INOUT new_id bigint)
+  BEGIN
+    DECLARE tmpid bigint;
+    DECLARE msg varchar(120);
+    IF new_id IS NULL OR new_id = 0 THEN
+      SET new_id = nextval('exam_id');
+    END IF;
+    IF EXISTS(SELECT id FROM exam WHERE id = new_id) OR EXISTS(SELECT id FROM iab_exam WHERE id = new_id) THEN
+      # emit a useful error message
+      SELECT 1+GREATEST(s1.maxid, s2.maxid) INTO tmpid FROM (
+          (SELECT max(id) AS maxid FROM exam) s1,
+          (SELECT max(id) AS maxid FROM iab_exam) s2);
+      SELECT CONCAT('Duplicate entry ', new_id, ' for exam_id, try SELECT setval(''exam_id'', ', tmpid, ')')INTO msg;
+      SIGNAL SQLSTATE '23000' SET MESSAGE_TEXT = msg;
+    END IF;
+  END //
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS exam_update_helper;
+DELIMITER //
+CREATE PROCEDURE exam_update_helper(IN old_id bigint, INOUT new_id bigint)
+  BEGIN
+    DECLARE msg varchar(120);
+    IF new_id IS NULL OR new_id = 0 THEN
+      SET new_id = old_id;
+    ELSEIF new_id != old_id THEN
+      IF EXISTS(SELECT id FROM exam WHERE id = new_id) OR EXISTS(SELECT id FROM iab_exam WHERE id = new_id) THEN
+        SELECT CONCAT('Duplicate entry ', new_id, ' for exam_id') INTO msg;
+        SIGNAL SQLSTATE '23000' SET MESSAGE_TEXT = msg;
+      END IF;
+    END IF;
+  END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS tr_exam_insert;
+CREATE TRIGGER tr_exam_insert BEFORE INSERT ON exam FOR EACH ROW CALL exam_insert_helper(NEW.id);
+
+DROP TRIGGER IF EXISTS tr_exam_update;
+CREATE TRIGGER tr_exam_update BEFORE UPDATE ON exam FOR EACH ROW CALL exam_update_helper(OLD.id, NEW.id);
+
+DROP TRIGGER IF EXISTS tr_iab_exam_insert;
+CREATE TRIGGER tr_iab_exam_insert BEFORE INSERT ON iab_exam FOR EACH ROW CALL exam_insert_helper(NEW.id);
+
+DROP TRIGGER IF EXISTS tr_iab_exam_update;
+CREATE TRIGGER tr_iab_exam_update BEFORE UPDATE ON iab_exam FOR EACH ROW CALL exam_update_helper(OLD.id, NEW.id);
