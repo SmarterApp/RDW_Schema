@@ -9,6 +9,17 @@ buildscript {
 
 plugins {
     id 'org.flywaydb.flyway' version '4.2.0'
+    id 'com.jfrog.artifactory' version '4.4.18'
+}
+
+apply plugin: 'distribution'
+apply plugin: 'maven-publish'
+
+group = 'org.opentestsystem.rdw.schema'
+version = '0.0.1-SNAPSHOT'
+
+if (project.hasProperty("buildNumber")) {
+    project.setVersion(project.version.toString().replaceAll("SNAPSHOT", "${buildNumber}"))
 }
 
 //Setting up an easy mapping of simple name to task object
@@ -49,3 +60,28 @@ def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
     }
 }
 
+//Setup distribution
+distributions {
+    main {
+        baseName = 'rdwSchema'
+        contents {
+            from ('.') {
+                include 'reporting/**'
+                include 'warehouse/**'
+                include 'staging/**'
+                include 'spring_batch_reporting/**'
+                include 'LICENSE'
+                include 'build.gradle'
+            }
+        }
+    }
+}
+
+//define the artifacts - they come from the distZip
+publishing {
+    publications {
+        schema(MavenPublication) {
+            artifact distZip
+        }
+    }
+}
