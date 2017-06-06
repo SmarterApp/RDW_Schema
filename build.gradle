@@ -9,7 +9,6 @@ buildscript {
 
 plugins {
     id 'org.flywaydb.flyway' version '4.2.0'
-    id 'com.jfrog.artifactory' version '4.4.18'
 }
 
 apply plugin: 'distribution'
