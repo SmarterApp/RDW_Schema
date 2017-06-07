@@ -85,6 +85,9 @@ publishing {
     }
 }
 
+//Install task for installing (publishing) to local .m2
+task install(dependsOn: publishToMavenLocal)
+
 
 //For ci use only
 artifactory {
