@@ -30,10 +30,13 @@ def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
                baseline: org.flywaydb.gradle.task.FlywayBaselineTask,
                repair: org.flywaydb.gradle.task.FlywayRepairTask]
 
+def dataMartSchemas = ["reporting", "reporting_test", "staging", "staging_test", "spring_batch_reporting", "spring_batch_reporting_test"]
+def warehouseSchemas = ["warehouse", "warehouse_test"]
+
 //Gradle can't call a single task more than once, because of its design, so
 //we dynamically create individual tasks for each of the available flyway commands
 //on all of our databases (dev and test)
-["reporting", "reporting_test", "warehouse", "warehouse_test", "staging", "staging_test", "spring_batch_reporting", "spring_batch_reporting_test"].each { schema ->
+(dataMartSchemas + warehouseSchemas).each { schema ->
     taskMap.keySet().each { key ->
         task("$key$schema", type: taskMap[key]) {
             group = key
@@ -50,15 +53,25 @@ def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
 }
 
 ["clean", "migrate"].each { allTask ->
-    task("${allTask}All", dependsOn: [project.getTasks().findAll{x-> !(x.name.contains("_test")) && x.property("group") == allTask}]){
+    def ts = project.getTasks()
+    task("${allTask}DataMart", dependsOn: [ts.findAll{x -> !(x.name.contains('warehouse')) &&  !(x.name.contains("_test")) && x.property("group") == allTask}]){
+        group=allTask
+        description="Custom task to " + allTask.capitalize() + " all objects in the configured production/development data mart schemas."
+    }
+    task("${allTask}DataMart-test", dependsOn: [ts.findAll{x -> !(x.name.contains('warehouse')) && x.name.contains("_test") && x.property("group") == allTask}]) {
+        group = allTask
+        description = "Custom task to " + allTask.capitalize() + " all objects in the test data mart schemas."
+    }
+    task("${allTask}All", dependsOn: [ts.findAll{x-> !(x.name.contains("_test")) && x.property("group") == allTask}]){
         group=allTask
         description="Custom task to " + allTask.capitalize() + " all objects in the configured production/development schemas."
     }
-    task("${allTask}All-test", dependsOn: [project.getTasks().findAll{x-> x.name.contains("_test") && x.property("group") == allTask}]){
+    task("${allTask}All-test", dependsOn: [ts.findAll{x-> x.name.contains("_test") && x.property("group") == allTask}]){
         group=allTask
         description="Custom task to " + allTask.capitalize() + " all objects in the configured test schemas."
     }
 }
+
 
 //Setup distribution
 distributions {
