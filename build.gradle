@@ -1,3 +1,5 @@
+import java.text.MessageFormat
+
 buildscript {
     repositories {
         jcenter()
@@ -30,48 +32,42 @@ def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
                baseline: org.flywaydb.gradle.task.FlywayBaselineTask,
                repair: org.flywaydb.gradle.task.FlywayRepairTask]
 
-def dataMartSchemas = ["reporting", "reporting_test", "staging", "staging_test", "spring_batch_reporting", "spring_batch_reporting_test"]
-def warehouseSchemas = ["warehouse", "warehouse_test"]
+def dataMartSchemas = ["reporting", "staging", "spring_batch_reporting"]
+def warehouseSchemas = ["warehouse"]
 
 //Gradle can't call a single task more than once, because of its design, so
 //we dynamically create individual tasks for each of the available flyway commands
 //on all of our databases (dev and test)
 (dataMartSchemas + warehouseSchemas).each { schema ->
     taskMap.keySet().each { key ->
-        task("$key$schema", type: taskMap[key]) {
-            group = key
-
-            url = 'jdbc:mysql://localhost:3306/'
-            user = 'root'
-            password = ''
-            driver = 'com.mysql.jdbc.Driver'
-            schemas = [schema]
-            locations = ['filesystem:' + rootDir.path + '/' + schema.split('_test')[0] + '/sql']
-            placeholders = ["schemaName": schema]
+        ["", "_test"].each { type ->
+            task("$key$schema$type", type: taskMap[key]) {
+                group = "$key$type"
+                url = 'jdbc:mysql://localhost:3306/'
+                user = 'root'
+                password = ''
+                driver = 'com.mysql.jdbc.Driver'
+                schemas = ["$schema$type"]
+                locations = ['filesystem:' + rootDir.path + "/$schema/sql"]
+                placeholders = ["schemaName": "$schema$type"]
+            }
         }
     }
 }
 
 ["clean", "migrate"].each { allTask ->
     def ts = project.getTasks()
-    task("${allTask}DataMart", dependsOn: [ts.findAll{x -> !(x.name.contains('warehouse')) &&  !(x.name.contains("_test")) && x.property("group") == allTask}]){
-        group=allTask
-        description="Custom task to " + allTask.capitalize() + " all objects in the configured production/development data mart schemas."
-    }
-    task("${allTask}DataMart-test", dependsOn: [ts.findAll{x -> !(x.name.contains('warehouse')) && x.name.contains("_test") && x.property("group") == allTask}]) {
-        group = allTask
-        description = "Custom task to " + allTask.capitalize() + " all objects in the test data mart schemas."
-    }
-    task("${allTask}All", dependsOn: [ts.findAll{x-> !(x.name.contains("_test")) && x.property("group") == allTask}]){
-        group=allTask
-        description="Custom task to " + allTask.capitalize() + " all objects in the configured production/development schemas."
-    }
-    task("${allTask}All-test", dependsOn: [ts.findAll{x-> x.name.contains("_test") && x.property("group") == allTask}]){
-        group=allTask
-        description="Custom task to " + allTask.capitalize() + " all objects in the configured test schemas."
+    ["","_test"].each { type ->
+        task("${allTask}All$type", dependsOn: [ts.findAll { it.property("group") == "$allTask$type" }]) {
+            group = "$allTask$type"
+            description = "Custom task to " + allTask.capitalize() + MessageFormat.format(" all objects in the configured {0} schemas.", type ? "test" : "production/development")
+        }
+        task("${allTask}DataMart$type", dependsOn: [ts.findAll{x-> x.name in dataMartSchemas.collect {"$allTask$it$type".toString()}}]) {
+            group = "$allTask$type"
+            description = "Custom task to " + allTask.capitalize() +  MessageFormat.format(" all objects in the configured {0} data mart schemas.", type ? "test" : "production/development")
+        }
     }
 }
-
 
 //Setup distribution
 distributions {
