@@ -25,7 +25,7 @@ if (project.hasProperty("buildNumber")) {
 }
 
 //Setting up an easy mapping of simple name to task object
-def taskMap = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
+def flywayActions = [migrate: org.flywaydb.gradle.task.FlywayMigrateTask,
                clean: org.flywaydb.gradle.task.FlywayCleanTask,
                info: org.flywaydb.gradle.task.FlywayInfoTask,
                validate: org.flywaydb.gradle.task.FlywayValidateTask,
@@ -37,15 +37,15 @@ def warehouseSchemas = ["warehouse"]
 
 //Gradle can't call a single task more than once, because of its design, so
 //we dynamically create individual tasks for each of the available flyway commands
-//on all of our databases (dev and test)
+//on all of our databases (dev and test). Task names end up like migrateStaging and cleanWarehouse_test.
 (dataMartSchemas + warehouseSchemas).each { schema ->
-    taskMap.keySet().each { key ->
+    flywayActions.keySet().each { action ->
         ["", "_test"].each { type ->
-            task("$key$schema$type", type: taskMap[key]) {
-                group = "$key$type"
-                url = 'jdbc:mysql://localhost:3306/'
-                user = 'root'
-                password = ''
+            task(action + schema.capitalize() + type, type: flywayActions[action]) {
+                group = "$action$type"
+                url = database_url
+                user = database_user
+                password = database_password
                 driver = 'com.mysql.jdbc.Driver'
                 schemas = ["$schema$type"]
                 locations = ['filesystem:' + rootDir.path + "/$schema/sql"]
@@ -55,8 +55,8 @@ def warehouseSchemas = ["warehouse"]
     }
 }
 
+def ts = project.getTasks()
 ["clean", "migrate"].each { allTask ->
-    def ts = project.getTasks()
     ["","_test"].each { type ->
         task("${allTask}All$type", dependsOn: [ts.findAll { it.property("group") == "$allTask$type" }]) {
             group = "$allTask$type"
