@@ -55,9 +55,8 @@ def warehouseSchemas = ["warehouse"]
     }
 }
 
-
+def ts = project.getTasks()
 ["clean", "migrate"].each { allTask ->
-    def ts = project.getTasks()
     ["","_test"].each { type ->
         task("${allTask}All$type", dependsOn: [ts.findAll { it.property("group") == "$allTask$type" }]) {
             group = "$allTask$type"
