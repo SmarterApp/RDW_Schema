@@ -30,7 +30,4 @@ ALTER TABLE translations MODIFY COLUMN namespace varchar(10) NOT NULL;
 ALTER TABLE translations MODIFY COLUMN language_code varchar(3) NOT NULL;
 ALTER TABLE translations MODIFY COLUMN content_code varchar(30) NOT NULL;
 
-/* remove unnecessary tables */
-
-DROP TABLE accommodation;
 DROP TABLE language;
