@@ -55,14 +55,15 @@ def warehouseSchemas = ["warehouse"]
     }
 }
 
-def ts = project.getTasks()
+
 ["clean", "migrate"].each { allTask ->
+    def ts = project.getTasks()
     ["","_test"].each { type ->
         task("${allTask}All$type", dependsOn: [ts.findAll { it.property("group") == "$allTask$type" }]) {
             group = "$allTask$type"
             description = "Custom task to " + allTask.capitalize() + MessageFormat.format(" all objects in the configured {0} schemas.", type ? "test" : "production/development")
         }
-        task("${allTask}DataMart$type", dependsOn: [ts.findAll{x-> x.name in dataMartSchemas.collect {"$allTask$it$type".toString()}}]) {
+        task("${allTask}DataMart$type", dependsOn: [ts.findAll{x-> x.name in dataMartSchemas.collect {allTask + it.capitalize() + type}}]) {
             group = "$allTask$type"
             description = "Custom task to " + allTask.capitalize() +  MessageFormat.format(" all objects in the configured {0} data mart schemas.", type ? "test" : "production/development")
         }
