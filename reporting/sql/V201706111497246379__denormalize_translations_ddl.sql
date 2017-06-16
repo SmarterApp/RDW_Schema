@@ -10,7 +10,7 @@ ALTER TABLE accommodation_translation RENAME TO translations;
 
 ALTER TABLE translations ADD COLUMN namespace varchar(10);
 ALTER TABLE translations ADD COLUMN language_code varchar(3);
-ALTER TABLE translations ADD COLUMN content_code varchar(30);
+ALTER TABLE translations ADD COLUMN content_code varchar(128);
 
 UPDATE translations t
   JOIN (accommodation AS a, language AS l) ON t.accommodation_id = a.id AND t.language_id=l.id
@@ -28,6 +28,6 @@ ALTER TABLE translations ADD CONSTRAINT uk__content_code__language_code UNIQUE K
 
 ALTER TABLE translations MODIFY COLUMN namespace varchar(10) NOT NULL;
 ALTER TABLE translations MODIFY COLUMN language_code varchar(3) NOT NULL;
-ALTER TABLE translations MODIFY COLUMN content_code varchar(30) NOT NULL;
+ALTER TABLE translations MODIFY COLUMN content_code varchar(128) NOT NULL;
 
 DROP TABLE language;
