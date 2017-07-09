@@ -2,7 +2,7 @@
 
 USE ${schemaName};
 
-
+#Increasing the size of the columns, but need to shrink the size of the prefix of lable_code that gets indexed
 ALTER TABLE translation MODIFY label text, 
 	MODIFY label_code varchar(256), 
 	DROP INDEX idx__translation__namespace_label_code_language_code,
