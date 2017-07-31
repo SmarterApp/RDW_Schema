@@ -42,7 +42,9 @@ CREATE TABLE IF NOT EXISTS import (
   created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   updated timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   message text,
-  INDEX idx__import__digest (digest)
+  INDEX idx__import__digest (digest),
+  INDEX idx__import__created (created),
+  INDEX idx__import__updated_status (updated, status)
 );
 
 /** Reference tables **/
@@ -122,12 +124,16 @@ CREATE TABLE IF NOT EXISTS asmt (
   import_id bigint NOT NULL,
   update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
+  created TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updated TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   UNIQUE INDEX idx__asmt__natural_id (natural_id),
   INDEX idx__asmt__grade_type_subject (grade_id, type_id, subject_id),
   INDEX idx__asmt__type (type_id),
   INDEX idx__asmt__subject (subject_id),
   INDEX idx__asmt__import (import_id),
   INDEX idx__asmt__update_import (update_import_id),
+  INDEX idx__asmt__created (created),
+  INDEX idx__asmt__updated (updated),
   CONSTRAINT fk__asmt__grade FOREIGN KEY (grade_id) REFERENCES grade(id),
   CONSTRAINT fk__asmt__type FOREIGN KEY (type_id) REFERENCES asmt_type(id),
   CONSTRAINT fk__asmt__subject FOREIGN KEY (subject_id) REFERENCES subject(id),
@@ -200,7 +206,9 @@ CREATE TABLE IF NOT EXISTS depth_of_knowledge (
 
 CREATE TABLE IF NOT EXISTS math_practice (
   practice tinyint NOT NULL PRIMARY KEY,
-  description varchar(250) NOT NULL
+  code VARCHAR(4) NOT NULL,
+  description varchar(250) NOT NULL,
+  UNIQUE INDEX idx__math_practice_code (code)
 );
 
 CREATE TABLE IF NOT EXISTS item (
@@ -215,7 +223,7 @@ CREATE TABLE IF NOT EXISTS item (
   difficulty_code varchar(1),
   difficulty float NOT NULL,
   max_points float UNSIGNED NOT NULL,
-  position tinyint,
+  position smallint,
   UNIQUE INDEX idx__item__asmt_natural_id (asmt_id, natural_id),
   INDEX idx__item__claim (claim_id),
   INDEX idx__item__target (target_id),
@@ -284,10 +292,14 @@ CREATE TABLE IF NOT EXISTS school (
   import_id bigint NOT NULL,
   update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
+  created TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updated TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   UNIQUE INDEX idx__school__natural_id (natural_id),
   INDEX idx__school__district (district_id),
   INDEX idx__school__import (import_id),
   INDEX idx__school__update_import (update_import_id),
+  INDEX idx__school__created (created),
+  INDEX idx__school__updated (updated),
   CONSTRAINT fk__school__district FOREIGN KEY (district_id) REFERENCES district(id),
   CONSTRAINT fk__school__import FOREIGN KEY (import_id) REFERENCES import(id),
   CONSTRAINT fk__school__update_import FOREIGN KEY (update_import_id) REFERENCES import(id)
@@ -309,16 +321,21 @@ CREATE TABLE IF NOT EXISTS student (
   import_id bigint NOT NULL,
   update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
+  created TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updated TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   UNIQUE INDEX idx__student__ssid (ssid),
   INDEX idx__student__import (import_id),
   INDEX idx__student__update_import (update_import_id),
+  INDEX idx__student__created (created),
+  INDEX idx__student__updated (updated),
   CONSTRAINT fk__student__import FOREIGN KEY (import_id) REFERENCES import(id),
   CONSTRAINT fk__student__update_import FOREIGN KEY (update_import_id) REFERENCES import(id)
  );
 
 CREATE TABLE IF NOT EXISTS student_ethnicity (
   ethnicity_id tinyint NOT NULL,
-  student_id int NOT NULL
+  student_id int NOT NULL,
+  UNIQUE INDEX idx__student_ethnicity (student_id, ethnicity_id)
 );
 
 CREATE TABLE IF NOT EXISTS student_group (
@@ -329,14 +346,17 @@ CREATE TABLE IF NOT EXISTS student_group (
   subject_id tinyint,
   active tinyint NOT NULL,
   creator varchar(250),
-  created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   import_id bigint NOT NULL,
   update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
+  created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updated TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   UNIQUE INDEX idx__student_group__school_name_year (school_id, name, school_year),
   INDEX idx__student_group__subject (subject_id),
   INDEX idx__student_group__import (import_id),
   INDEX idx__student_group__update_import (update_import_id),
+  INDEX idx__student_group__created (created),
+  INDEX idx__student_group__updated (updated),
   CONSTRAINT fk__student_group__school FOREIGN KEY (school_id) REFERENCES school(id),
   CONSTRAINT fk__student_group__subject FOREIGN KEY (subject_id) REFERENCES subject(id),
   CONSTRAINT fk__student_group__import FOREIGN KEY (import_id) REFERENCES import(id),
@@ -369,7 +389,7 @@ CREATE TABLE IF NOT EXISTS exam_student (
   school_id int NOT NULL,
   iep tinyint NOT NULL,
   lep tinyint NOT NULL,
-  section504 tinyint NOT NULL,
+  section504 tinyint,
   economic_disadvantage tinyint NOT NULL,
   migrant_status tinyint,
   eng_prof_lvl varchar(20),
@@ -401,10 +421,14 @@ CREATE TABLE IF NOT EXISTS exam (
   import_id bigint NOT NULL,
   update_import_id bigint NOT NULL,
   deleted tinyint NOT NULL DEFAULT 0,
+  created TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updated TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   INDEX idx__exam__exam_student (exam_student_id),
   INDEX idx__exam__asmt (asmt_id),
   INDEX idx__exam__import (import_id),
   INDEX idx__exam__update_import (update_import_id),
+  INDEX idx__exam__created (created),
+  INDEX idx__exam__updated (updated),
   CONSTRAINT fk__exam__exam_student FOREIGN KEY (exam_student_id) REFERENCES exam_student(id),
   CONSTRAINT fk__exam__asmt FOREIGN KEY (asmt_id) REFERENCES asmt(id),
   CONSTRAINT fk__exam__import FOREIGN KEY (import_id) REFERENCES import(id),
@@ -417,7 +441,7 @@ CREATE TABLE IF NOT EXISTS exam_item (
   item_id int NOT NULL,
   score float NOT NULL,
   score_status varchar(50),
-  position int NOT NULL,
+  position smallint NOT NULL,
   response text,
   trait_evidence_elaboration_score float,
   trait_evidence_elaboration_score_status varchar(50),
@@ -515,94 +539,6 @@ CREATE PROCEDURE student_upsert(IN  p_ssid                          VARCHAR(65),
   END; //
 DELIMITER ;
 
-/** District upsert **/
-
-DROP PROCEDURE IF EXISTS district_upsert;
-
-DELIMITER //
-CREATE PROCEDURE district_upsert(IN  p_name       VARCHAR(100),
-                                 IN  p_natural_id VARCHAR(40),
-                                 OUT p_id         MEDIUMINT)
-  BEGIN
-
-    --  handle duplicate entry: if there are two competing inserts, one will end up here
-    DECLARE CONTINUE HANDLER FOR 1062
-    BEGIN
-      SELECT id INTO p_id FROM district WHERE natural_id = p_natural_id;
-    END;
-
-    SELECT id INTO p_id FROM district WHERE natural_id = p_natural_id;
-
-    IF (p_id IS NOT NULL)
-    THEN
-      UPDATE district SET name = p_name WHERE id = p_id;
-    ELSE
-      INSERT INTO district (name, natural_id)
-      VALUES (p_name, p_natural_id);
-
-      SELECT id INTO p_id FROM district WHERE natural_id = p_natural_id;
-    END IF;
-  END; //
-DELIMITER ;
-
-/** School upsert **/
-
-DROP PROCEDURE IF EXISTS school_upsert;
-
-DELIMITER //
-CREATE PROCEDURE school_upsert(IN  p_district_name       VARCHAR(100),
-                               IN  p_district_natural_id VARCHAR(40),
-                               IN  p_name                VARCHAR(100),
-                               IN  p_natural_id          VARCHAR(40),
-                               IN  p_import_id           BIGINT,
-                               OUT p_id                  MEDIUMINT)
-  BEGIN
-    DECLARE p_district_id MEDIUMINT;
-    DECLARE isUpdate TINYINT;
-
-    --  handle duplicate entry: if there are two competing inserts, one will end up here
-    DECLARE CONTINUE HANDLER FOR 1062
-    BEGIN
-      SELECT id INTO p_id FROM school WHERE natural_id = p_natural_id;
-    END;
-
-    -- there is no transaction since the worse that could happen a district will be created without a school
-    CALL district_upsert(p_district_name, p_district_natural_id, p_district_id);
-    SELECT p_district_id;
-
-    SELECT id INTO p_id FROM school WHERE natural_id = p_natural_id;
-
-    IF (p_id IS NOT NULL)
-    THEN
-      -- check if there is anything to update
-      SELECT CASE WHEN count(*) > 0 THEN 0 ELSE 1 END INTO isUpdate
-       FROM school s JOIN district d
-      WHERE s.id = p_id
-            AND s.name = p_name
-            AND d.natural_id = p_district_natural_id
-            AND d.name = p_district_name;
-
-      IF (isUpdate = 1)
-      THEN
-        UPDATE school
-        SET
-          name            = p_name,
-          natural_id      = p_natural_id,
-          district_id     = p_district_id,
-          update_import_id   = p_import_id
-        WHERE id = p_id;
-
-      END IF;
-
-    ELSE
-      INSERT INTO school (district_id, name, natural_id, import_id, update_import_id)
-      VALUES (p_district_id, p_name, p_natural_id, p_import_id, p_import_id);
-
-      SELECT id INTO p_id FROM school WHERE natural_id = p_natural_id;
-
-    END IF;
-  END; //
-DELIMITER ;
 
 /** Student upsert **/
 DROP PROCEDURE IF EXISTS student_group_upsert;
@@ -661,39 +597,66 @@ CREATE PROCEDURE student_group_upsert(IN  p_name        VARCHAR(255),
 DELIMITER ;
 
 
-/** Assessment safe create **/
-DROP PROCEDURE IF EXISTS asmt_safe_create;
-
+DROP PROCEDURE IF EXISTS district_upsert;
 DELIMITER //
-CREATE PROCEDURE asmt_safe_create(IN  p_natural_id    VARCHAR(250),
-                                  IN  p_grade_id      TINYINT,
-                                  IN  p_type_id       TINYINT,
-                                  IN  p_subject_id    TINYINT,
-                                  IN  p_school_year   SMALLINT,
-                                  IN  p_name          VARCHAR(250),
-                                  IN  p_label         VARCHAR(255),
-                                  IN  p_import_id     BIGINT,
-                                  OUT p_id            INT)
+CREATE PROCEDURE district_upsert(IN  p_name       VARCHAR(100),
+                                 IN  p_natural_id VARCHAR(40),
+                                 OUT p_id         INT,
+                                 OUT p_updated    TINYINT)
   BEGIN
-
-    DECLARE isUpdate TINYINT;
+    DECLARE cur_name VARCHAR(100);
 
     --  handle duplicate entry: if there are two competing inserts, one will end up here
     DECLARE CONTINUE HANDLER FOR 1062
     BEGIN
-      SELECT id INTO p_id FROM asmt WHERE natural_id = p_natural_id;
+      SELECT id, 0 INTO p_id, p_updated FROM district WHERE natural_id = p_natural_id;
     END;
 
-    SELECT id INTO p_id FROM asmt WHERE natural_id = p_natural_id;
+    SELECT id, name, 0 INTO p_id, cur_name, p_updated FROM district WHERE natural_id = p_natural_id;
 
-    IF (p_id IS NULL)
-    THEN
-      INSERT INTO asmt (natural_id, name, label, grade_id, type_id, subject_id, school_year, import_id, update_import_id)
-      VALUES (p_natural_id, p_name, p_label, p_grade_id, p_type_id, p_subject_id, p_school_year, p_import_id, p_import_id);
+    IF (p_id IS NULL) THEN
+      INSERT INTO district (name, natural_id) VALUES (p_name, p_natural_id);
+      SELECT id, 2 INTO p_id, p_updated FROM district WHERE natural_id = p_natural_id;
+    ELSEIF (p_name != cur_name) THEN
+      UPDATE district SET name = p_name WHERE id = p_id;
+      SELECT 1 INTO p_updated;
     END IF;
+  END; //
+DELIMITER ;
 
-   SELECT id INTO p_id FROM asmt WHERE natural_id = p_natural_id;
 
-  END;
-//
+DROP PROCEDURE IF EXISTS school_upsert;
+DELIMITER //
+CREATE PROCEDURE school_upsert(IN  p_district_name       VARCHAR(100),
+                               IN  p_district_natural_id VARCHAR(40),
+                               IN  p_name                VARCHAR(100),
+                               IN  p_natural_id          VARCHAR(40),
+                               IN  p_import_id           BIGINT,
+                               OUT p_id                  INT)
+  BEGIN
+    DECLARE p_district_updated TINYINT;
+    DECLARE p_district_id INT;
+    DECLARE cur_name VARCHAR(100);
+    DECLARE cur_district_id INT;
+
+    --  handle duplicate entry: if there are two competing inserts, one will end up here
+    DECLARE CONTINUE HANDLER FOR 1062
+    BEGIN
+      SELECT id INTO p_id FROM school WHERE natural_id = p_natural_id;
+    END;
+
+    -- there is no transaction since the worse that could happen a district will be created without a school
+    CALL district_upsert(p_district_name, p_district_natural_id, p_district_id, p_district_updated);
+    SELECT p_district_updated, p_district_id;
+
+    SELECT id, name, district_id INTO p_id, cur_name, cur_district_id FROM school WHERE natural_id = p_natural_id;
+
+    IF (p_id IS NULL) THEN
+      INSERT INTO school (district_id, name, natural_id, import_id, update_import_id)
+      VALUES (p_district_id, p_name, p_natural_id, p_import_id, p_import_id);
+      SELECT id INTO p_id FROM school WHERE natural_id = p_natural_id;
+    ELSEIF (p_district_updated != 0 OR p_name != cur_name OR p_district_id != cur_district_id) THEN
+      UPDATE school SET name = p_name, district_id = p_district_id, update_import_id = p_import_id WHERE id = p_id;
+    END IF;
+  END; //
 DELIMITER ;
