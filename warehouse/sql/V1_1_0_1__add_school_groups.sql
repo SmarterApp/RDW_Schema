@@ -30,6 +30,6 @@ ALTER TABLE school
   ADD CONSTRAINT fk__school__district_group FOREIGN KEY (district_group_id) REFERENCES district_group (id),
   ADD CONSTRAINT fk__school__school_group FOREIGN KEY (school_group_id) REFERENCES school_group (id);
 
--- although these procedures aren't used by the code any more they are used in some legacy_load scripts
--- DROP PROCEDURE IF EXISTS school_upsert;
--- DROP PROCEDURE IF EXISTS district_upsert;
+-- code no longer uses these; this change is not backward compatible!
+DROP PROCEDURE IF EXISTS school_upsert;
+DROP PROCEDURE IF EXISTS district_upsert;
