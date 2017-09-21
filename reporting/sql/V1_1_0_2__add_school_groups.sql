@@ -3,7 +3,7 @@
 USE ${schemaName};
 
 CREATE TABLE IF NOT EXISTS staging_district_group (
-  id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  id int NOT NULL PRIMARY KEY,
   natural_id varchar(40) NOT NULL,
   name varchar(100) NOT NULL,
   external_id varchar(40),
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS staging_district_group (
 );
 
 CREATE TABLE IF NOT EXISTS staging_school_group (
-  id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  id int NOT NULL PRIMARY KEY,
   natural_id varchar(40) NOT NULL,
   name varchar(100) NOT NULL,
   external_id varchar(40),
