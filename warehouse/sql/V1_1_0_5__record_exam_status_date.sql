@@ -6,21 +6,6 @@ USE ${schemaName};
 ALTER TABLE exam
   ADD COLUMN status_date TIMESTAMP(6) DEFAULT NULL,
   DROP INDEX idx__exam__student_asmt_oppId,
-  ADD INDEX idx__exam__oppId_asmt (oppId, asmt_id);
-
--- Disambiguate oppIds to allow for a unique (oppId, asmt_id) index
-UPDATE exam e1
-  JOIN exam e2
-    ON e1.id != e2.id
-    AND e1.asmt_id = e2.asmt_id
-    AND e1.oppId = e2.oppId
-  SET
-    e1.oppId = CONCAT(CAST(e1.id as CHAR), '_', e1.oppId);
-
-ALTER TABLE exam
-  DROP INDEX idx__exam__oppId_asmt;
-
-ALTER TABLE exam
   ADD UNIQUE INDEX idx__exam__oppId_asmt (oppId, asmt_id);
 
 -- Update audit table and triggers
