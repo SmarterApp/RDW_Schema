@@ -36,23 +36,37 @@ def flywayActions = [migrate : org.flywaydb.gradle.task.FlywayMigrateTask,
 
 def reportingSchemas = ["reporting"]
 def warehouseSchemas = ["warehouse"]
-def migrateOlapSchema = ["migrate_olap"]
+def migrateOlapSchemas = ["migrate_olap"]
+def reportingOlapSchemas = ["reporting_olap"]
 
-//Gradle can't call a single task more than once, because of its design, so
-//we dynamically create individual tasks for each of the available flyway commands
-//on all of our databases (dev and test). Task names end up like migrateStaging and cleanWarehouse_test.
-(reportingSchemas + warehouseSchemas + migrateOlapSchema).each { schema ->
+// Gradle can't call a single task more than once because of its design, so this creates
+// individual tasks for each of the available flyway commands on all of our databases.
+// Task names end up like migrateReporting, cleanWarehouse_test, infoReporting_olap.
+//
+// reporting_olap is treated a bit differently: because redshift can't run locally and instances
+// of redshift are expensive, we are using different schemas within redshift for developers and CI.
+(reportingSchemas + warehouseSchemas + migrateOlapSchemas + reportingOlapSchemas).each { schema ->
     flywayActions.keySet().each { action ->
         ["", "_test"].each { type ->
             task(action + schema.capitalize() + type, type: flywayActions[action]) {
-                group = "$action$type"
-                url = database_url
-                user = database_user
-                password = database_password
-                driver = 'com.mysql.jdbc.Driver'
-                schemas = ["$schema$type"]
+                def realSchema = schema
                 locations = ['filesystem:' + rootDir.path + "/$schema/sql"]
-                placeholders = ["schemaName": "$schema$type"]
+                if (schema == 'reporting_olap') {
+                    // for now, don't include redshift tasks in "All" tasks
+                    realSchema = redshift_schema
+                    url = redshift_url
+                    user = redshift_user
+                    password = redshift_password
+                    driver = 'com.amazon.redshift.jdbc42.Driver'
+                } else {
+                    group = "$action$type"
+                    url = database_url
+                    user = database_user
+                    password = database_password
+                    driver = 'com.mysql.jdbc.Driver'
+                }
+                schemas = ["$realSchema$type"]
+                placeholders = ["schemaName": "$realSchema$type"]
             }
         }
     }
