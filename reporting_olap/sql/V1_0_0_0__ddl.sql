@@ -2,6 +2,7 @@
 Redshift script for the SBAC Aggregate Reporting Data Warehouse 1.0.0 schema
 */
 
+SET SEARCH_PATH to ${schemaName};
 
 SET client_encoding = 'UTF8';
 
