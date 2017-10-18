@@ -269,3 +269,8 @@ CREATE TABLE fact_student_ica_exam_for_longitudinal (
   CONSTRAINT fk__fact_student_ica_exam__school FOREIGN KEY(school_id) REFERENCES school(id),
   CONSTRAINT fk__fact_student_ica_exam__student FOREIGN KEY(student_id) REFERENCES student(id)
  )   COMPOUND SORTKEY (school_id, asmt_id);
+
+CREATE TABLE status_indicator (
+  id smallint encode delta PRIMARY KEY,
+  updated timestamp DEFAULT current_timestamp
+);

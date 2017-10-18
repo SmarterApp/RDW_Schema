@@ -28,3 +28,6 @@ INSERT INTO exam_claim_score_mapping (subject_claim_score_id, num) VALUES
   (12, 2),
   (13, 3),
   (14, 4);
+
+INSERT INTO status_indicator (id) VALUES
+  (1);
