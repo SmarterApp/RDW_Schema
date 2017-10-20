@@ -2,6 +2,7 @@
 Redshift script for the SBAC Aggregate Reporting Data Warehouse 1.0.0 schema
 */
 
+SET SEARCH_PATH to ${schemaName};
 
 SET client_encoding = 'UTF8';
 
@@ -40,7 +41,8 @@ CREATE TABLE staging_asmt (
   school_year smallint NOT NULL,
   name character varying(250) NOT NULL,
   deleted boolean NOT NULL,
-  migrate_id bigint NOT NULL
+  migrate_id bigint NOT NULL,
+  update_import_id bigint NOT NULL
  );
 
 CREATE TABLE staging_district (
@@ -54,7 +56,8 @@ CREATE TABLE staging_school (
   district_id int NOT NULL,
   name character varying(100) NOT NULL,
   deleted boolean NOT NULL,
-  migrate_id bigint NOT NULL
+  migrate_id bigint NOT NULL,
+  update_import_id bigint NOT NULL
 );
 
 CREATE TABLE staging_student (
@@ -65,7 +68,8 @@ CREATE TABLE staging_student (
   middle_name character varying(60),
   gender_id smallint,
   deleted boolean NOT NULL,
-  migrate_id bigint NOT NULL
+  migrate_id bigint NOT NULL,
+  update_import_id bigint NOT NULL
  );
 
 CREATE TABLE staging_student_ethnicity (
@@ -93,7 +97,9 @@ CREATE TABLE staging_exam (
   scale_score_std_err float,
   performance_level smallint,
   deleted boolean NOT NULL,
-  migrate_id bigint NOT NULL
+  completed_at timestamp without time zone NOT NULL,
+  migrate_id bigint NOT NULL,
+  update_import_id bigint NOT NULL
 );
 
 CREATE TABLE staging_exam_claim_score (
@@ -150,7 +156,8 @@ CREATE TABLE school (
   id integer encode raw PRIMARY KEY SORTKEY,
   name varchar(100) NOT NULL,
   district_id integer NOT NULL,
-  migrate_id bigint encode delta NOT NULL
+  migrate_id bigint encode delta NOT NULL,
+  update_import_id bigint encode delta NOT NULL
 ) DISTSTYLE ALL;
 
 CREATE TABLE ica_asmt (
@@ -159,7 +166,8 @@ CREATE TABLE ica_asmt (
   school_year int NOT NULL,
   subject_id smallint NOT NULL,
   name character varying(250) NOT NULL,
-  migrate_id bigint encode delta NOT NULL
+  migrate_id bigint encode delta NOT NULL,
+  update_import_id bigint encode delta NOT NULL
 ) DISTSTYLE ALL;
 
 CREATE TABLE gender (
@@ -172,10 +180,11 @@ CREATE TABLE ethnicity (
   code character varying(120) NOT NULL UNIQUE
 ) DISTSTYLE ALL;
 
-CREATE TABLE student(
+CREATE TABLE student (
   id bigint encode raw PRIMARY KEY SORTKEY DISTKEY,
   gender_id int encode lzo,
-  migrate_id bigint encode delta NOT NULL
+  migrate_id bigint encode delta NOT NULL,
+  update_import_id bigint encode delta NOT NULL
 ) DISTSTYLE KEY;
 
 CREATE TABLE student_ethnicity (
@@ -186,17 +195,17 @@ CREATE TABLE student_ethnicity (
 -- facts
 CREATE TABLE fact_student_ica_exam (
   id bigint encode delta PRIMARY KEY,
-  school_id integer encode raw  NOT NULL,
-  student_id bigint encode raw  NOT NULL DISTKEY,
+  school_id integer encode raw NOT NULL,
+  student_id bigint encode raw NOT NULL DISTKEY,
   asmt_id bigint encode raw  NOT NULL,
   grade_id smallint encode lzo NOT NULL,
   asmt_grade_id smallint encode lzo NOT NULL, -- TODO: research if this is needed
   school_year smallint encode raw NOT NULL,
-  iep smallint encode lzo NOT NULL,
-  lep smallint encode lzo NOT NULL,
-  section504 smallint encode lzo,
-  economic_disadvantage smallint encode lzo NOT NULL,
-  migrant_status smallint encode lzo,
+  iep boolean encode raw NOT NULL,
+  lep boolean encode raw NOT NULL,
+  section504 boolean encode raw,
+  economic_disadvantage boolean encode raw NOT NULL,
+  migrant_status boolean encode raw,
   completeness_id smallint encode lzo NOT NULL,
   administration_condition_id smallint encode lzo NOT NULL,
   scale_score float encode bytedict ,
@@ -214,7 +223,9 @@ CREATE TABLE fact_student_ica_exam (
   claim4_scale_score float encode bytedict,
   claim4_scale_score_std_err float encode bytedict,
   claim4_category smallint encode lzo,
+  completed_at timestamptz encode lzo NOT NULL,
   migrate_id bigint encode delta NOT NULL,
+  update_import_id bigint encode delta NOT NULL,
   CONSTRAINT fk__fact_student_ica_exam__ica_asmt FOREIGN KEY(asmt_id) REFERENCES ica_asmt(id),
   CONSTRAINT fk__fact_student_ica_exam__school FOREIGN KEY(school_id) REFERENCES school(id),
   CONSTRAINT fk__fact_student_ica_exam__student FOREIGN KEY(student_id) REFERENCES student(id)
@@ -223,17 +234,17 @@ CREATE TABLE fact_student_ica_exam (
 -- TODO: decide if this is needed
 CREATE TABLE fact_student_ica_exam_for_longitudinal (
   id bigint encode delta PRIMARY KEY,
-  school_id integer encode raw  NOT NULL,
-  student_id bigint encode raw  NOT NULL DISTKEY,
+  school_id integer encode raw NOT NULL,
+  student_id bigint encode raw NOT NULL DISTKEY,
   asmt_id bigint encode raw  NOT NULL,
   grade_id smallint encode lzo NOT NULL,
   asmt_grade_id smallint encode lzo NOT NULL,
   school_year smallint encode raw NOT NULL,
-  iep smallint encode lzo NOT NULL,
-  lep smallint encode lzo NOT NULL,
-  section504 smallint encode lzo,
-  economic_disadvantage smallint encode lzo NOT NULL,
-  migrant_status smallint encode lzo,
+  iep boolean encode raw NOT NULL,
+  lep boolean encode raw NOT NULL,
+  section504 boolean encode raw,
+  economic_disadvantage boolean encode raw NOT NULL,
+  migrant_status boolean encode raw,
   completeness_id smallint encode lzo NOT NULL,
   administration_condition_id smallint encode lzo NOT NULL,
   scale_score float encode bytedict ,
@@ -251,8 +262,15 @@ CREATE TABLE fact_student_ica_exam_for_longitudinal (
   claim4_scale_score float encode bytedict,
   claim4_scale_score_std_err float encode bytedict,
   claim4_category smallint encode lzo,
+  completed_at timestamptz encode lzo NOT NULL,
   migrate_id bigint encode delta NOT NULL,
+  update_import_id bigint encode delta NOT NULL,
   CONSTRAINT fk__fact_student_ica_exam__ica_asmt FOREIGN KEY(asmt_id) REFERENCES ica_asmt(id),
   CONSTRAINT fk__fact_student_ica_exam__school FOREIGN KEY(school_id) REFERENCES school(id),
   CONSTRAINT fk__fact_student_ica_exam__student FOREIGN KEY(student_id) REFERENCES student(id)
  )   COMPOUND SORTKEY (school_id, asmt_id);
+
+CREATE TABLE status_indicator (
+  id smallint encode delta PRIMARY KEY,
+  updated timestamp DEFAULT current_timestamp
+);
