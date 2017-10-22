@@ -15,4 +15,4 @@ FROM exam AS e1
     ON e1.student_id = e2.student_id
        AND (e1.completed_at < e2.completed_at
             OR (e1.completed_at = e2.completed_at AND e1.Id < e2.Id))
-WHERE e2.student_id IS NULL;
+WHERE e2.student_id IS NULL AND e1.deleted = 0;
