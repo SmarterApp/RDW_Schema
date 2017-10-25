@@ -2,18 +2,6 @@
 
 USE ${schemaName};
 
-CREATE TABLE translation_temp (
-  namespace varchar(10) NOT NULL,
-  label_code varchar(128) NOT NULL,
-  language_code varchar(3) NOT NULL,
-  label text,
-  PRIMARY KEY (namespace, label_code, language_code)
-);
-
-INSERT INTO translation_temp (namespace, label_code, language_code, label)
-  SELECT namespace, label_code, language_code, label
-  FROM translation;
-
-DROP TABLE translation;
-
-RENAME TABLE translation_temp TO translation;
+ALTER TABLE translation
+  ADD PRIMARY KEY (namespace, label_code, language_code),
+  DROP INDEX idx__translation__namespace_label_code_language_code;
