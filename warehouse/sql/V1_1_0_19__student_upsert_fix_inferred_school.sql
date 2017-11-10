@@ -1,13 +1,7 @@
-
 USE ${schemaName};
 
 DROP PROCEDURE IF EXISTS student_upsert;
 
--- Modified to not update a student if p_inferred_effective_date is before the currently stored date.
--- The caller can use p_update to determine what action has been performed:
--- p_update = 0 - nothing has been touched, either nothing has changed or the p_inferred_effective_date is older than the one stored
--- p_update = 1 - a record has been updated
--- p_update = 2 - a new record has been created
 DELIMITER //
 CREATE PROCEDURE student_upsert(IN  p_ssid                          VARCHAR(65),
                                 IN  p_last_or_surname               VARCHAR(60),
@@ -27,32 +21,22 @@ CREATE PROCEDURE student_upsert(IN  p_ssid                          VARCHAR(65),
     --  handle duplicate entry: if there are two competing inserts, one will end up here
     DECLARE CONTINUE HANDLER FOR 1062
     BEGIN
-      SELECT id, 0 INTO p_id, p_updated FROM student WHERE ssid = p_ssid;
+      SELECT id, 0 INTO p_id, p_updated FROM student  WHERE ssid = p_ssid;
     END;
 
     -- see if it is an existing student and if the data is fresher than the one stored
-    SELECT id,
-            CASE WHEN (p_inferred_effective_date IS NOT NULL AND inferred_effective_date IS NOT NULL AND p_inferred_effective_date < inferred_effective_date)
-                THEN 0
-            ELSE 1 END
-            INTO p_id, p_updated
-        FROM student WHERE ssid = p_ssid;
+    SELECT id, 0 INTO p_id, p_updated FROM student WHERE ssid = p_ssid;
 
-    IF (p_id IS NOT NULL AND p_updated = 1)
-    THEN
-       IF(p_inferred_school_id IS NULL)
-         THEN
-            SELECT e1.school_id, e1.completed_at INTO p_inferred_school_id, p_inferred_effective_date
-                FROM (SELECT * FROM exam WHERE deleted = 0 and student_id = p_id) AS e1
-                    LEFT OUTER JOIN (SELECT * FROM exam WHERE deleted = 0 and student_id = p_id) AS e2
-                    ON e1.student_id = e2.student_id AND (e1.completed_at < e2.completed_at
-                    OR (e1.completed_at = e2.completed_at AND e1.Id < e2.Id))
-                WHERE e2.student_id IS NULL;
-       END IF;
+    IF (p_id IS NOT NULL) THEN
+
+      SELECT CASE WHEN p_inferred_effective_date IS NULL OR completed_at > p_inferred_effective_date THEN school_id ELSE p_inferred_school_id END INTO p_inferred_school_id
+        FROM exam WHERE student_id = p_id AND deleted = 0
+        ORDER BY completed_at DESC LIMIT 1;
 
       -- check if there is anything to update
-      SELECT CASE WHEN count(*) > 0 THEN 0 ELSE 1 END INTO p_updated FROM student
-      WHERE id = p_id
+      SELECT CASE WHEN count(*) > 0 THEN 0 ELSE 1 END INTO p_updated
+        FROM student
+        WHERE id = p_id
             AND last_or_surname <=> p_last_or_surname
             AND first_name <=> p_first_name
             AND middle_name <=> p_middle_name
@@ -60,12 +44,10 @@ CREATE PROCEDURE student_upsert(IN  p_ssid                          VARCHAR(65),
             AND first_entry_into_us_school_at <=> p_first_entry_into_us_school_at
             AND lep_entry_at <=> p_lep_entry_at
             AND lep_exit_at <=> p_lep_exit_at
-            AND birthday <=>  p_birthday
-            AND (inferred_effective_date <=> p_inferred_effective_date OR (inferred_effective_date IS NOT NULL AND inferred_effective_date > COALESCE(p_inferred_effective_date,inferred_effective_date)))
-            AND (inferred_school_id <=> p_inferred_school_id OR (inferred_effective_date IS NOT NULL AND inferred_effective_date > COALESCE(p_inferred_effective_date,inferred_effective_date)));
+            AND birthday <=> p_birthday
+            AND inferred_school_id <=> p_inferred_school_id;
 
-      IF (p_updated = 1)
-      THEN
+      IF (p_updated = 1) THEN
         UPDATE student
         SET
           last_or_surname               = p_last_or_surname,
@@ -76,17 +58,16 @@ CREATE PROCEDURE student_upsert(IN  p_ssid                          VARCHAR(65),
           lep_entry_at                  = p_lep_entry_at,
           lep_exit_at                   = p_lep_exit_at,
           birthday                      = p_birthday,
-          inferred_effective_date       = p_inferred_effective_date,
           inferred_school_id            = p_inferred_school_id,
           update_import_id              = p_import_id
         WHERE id = p_id;
       END IF;
-    ELSEIF (p_id IS NULL)
-    THEN
-      INSERT INTO student (ssid, last_or_surname, first_name, middle_name, gender_id, first_entry_into_us_school_at, lep_entry_at, lep_exit_at, birthday, inferred_school_id, inferred_effective_date, import_id, update_import_id)
-      VALUES (p_ssid, p_last_or_surname, p_first_name, p_middle_name, p_gender_id, p_first_entry_into_us_school_at, p_lep_entry_at, p_lep_exit_at, p_birthday, p_inferred_school_id, p_inferred_effective_date, p_import_id, p_import_id);
+    ELSE
+      INSERT INTO student (ssid, last_or_surname, first_name, middle_name, gender_id, first_entry_into_us_school_at, lep_entry_at, lep_exit_at, birthday, inferred_school_id, import_id, update_import_id)
+      VALUES (p_ssid, p_last_or_surname, p_first_name, p_middle_name, p_gender_id, p_first_entry_into_us_school_at, p_lep_entry_at, p_lep_exit_at, p_birthday, p_inferred_school_id, p_import_id, p_import_id);
 
       SELECT id, 2 INTO p_id, p_updated FROM student WHERE ssid = p_ssid;
     END IF;
-  END; //
+  END;
+//
 DELIMITER ;
