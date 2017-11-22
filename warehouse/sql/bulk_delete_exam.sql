@@ -16,7 +16,8 @@ SET @select_exam_ids = '{placeholder for query that identifies exams to be delet
 -- ------------------------------------------------------------------------------------------------------------
 -- STEP 2 (optional): turn off auditing
 -- ------------------------------------------------------------------------------------------------------------
-UPDATE setting SET value = 'FALSE' WHERE name = 'AUDIT_TRIGGER_ENABLE';
+SELECT value INTO @audit_setting FROM setting WHERE name = 'AUDIT_TRIGGER_ENABLE';
+UPDATE setting SET value = 'FALSE' WHERE name = 'AUDIT_TRIGGER_ENABLE' AND value != 'FALSE';
 
 -- ------------------------------------------------------------------------------------------------------------
 -- STEP 3: initialization
@@ -133,4 +134,4 @@ DROP PROCEDURE loop_by_partition;
 -- ------------------------------------------------------------------------------------------------------------
 -- STEP 10 (optional): turn auditing back on (if needed)
 -- ------------------------------------------------------------------------------------------------------------
-UPDATE setting SET value = 'TRUE' WHERE name = 'AUDIT_TRIGGER_ENABLE';
+UPDATE setting SET value = @audit_setting WHERE name = 'AUDIT_TRIGGER_ENABLE' AND value != @audit_setting;
