@@ -4,7 +4,7 @@
 
 use reporting;
 
-INSERT INTO instructional_resource (asmt_natural_id, org_level, performance_level, resource) VALUES
+INSERT INTO instructional_resource (asmt_name, org_level, performance_level, resource) VALUES
   ('SBAC-IAB-FIXED-G3M-NBT-MATH-3', 'System', 0, 'https://portal.smarterbalanced.org/library/en/v1.0/digital-library-connections-grade-3-number-and-operations-in-base-ten.docx'),
   ('SBAC-IAB-FIXED-G4E-Revision-ELA-4', 'System', 0, 'https://portal.smarterbalanced.org/library/en/digital-library-connections-grade-4-revision.docx'),
   ('SBAC-IAB-FIXED-G4E-BriefWrites-ELA-4', 'System', 0, 'https://portal.smarterbalanced.org/library/en/v1.0/digital-library-connections-grade-4-brief-writes.docx'),
