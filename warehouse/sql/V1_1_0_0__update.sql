@@ -363,7 +363,17 @@ ALTER TABLE student_ethnicity
   ADD COLUMN created TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL;
 
 ALTER TABLE student_group_membership
-  ADD COLUMN created timestamp(6) default CURRENT_TIMESTAMP(6) not null;
+  ADD COLUMN created timestamp(6) default CURRENT_TIMESTAMP(6) NOT NULL;
+UPDATE student_group_membership sgm
+  JOIN student_group sg ON sg.id = sgm.student_group_id
+SET sgm.created = sg.created;
+
+ALTER TABLE user_student_group
+  ADD COLUMN created timestamp(6) default CURRENT_TIMESTAMP(6) NOT NULL;
+UPDATE user_student_group usg
+  JOIN student_group sg ON sg.id = usg.student_group_id
+SET usg.created = sg.created;
+
 
 DROP PROCEDURE IF EXISTS student_upsert;
 DELIMITER //
