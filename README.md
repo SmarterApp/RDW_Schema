@@ -72,11 +72,11 @@ Flyway requires prefixing each script with the version. To avoid a prefix collis
 prefix that has the version followed by an incrementing number, e.g. `V1_0_1_23__add_stuff.sql` would be the 23rd
 script for the 1.0.1 release. 
 
-### Release Script
+### Release Scripts
 
-The V1_0_0 release scripts are condensed from the initial and incremental scripts created during development. To reset 
-a db instance that had the incremental scripts applied so that the flyway table represents as if this script had been 
-used instead:
+The V1_0_0 release scripts are condensed from the initial and incremental scripts created during
+development. To reset a db instance that had the incremental scripts applied so that the flyway
+table represents as if this script had been used instead:
 ```sql
 USE warehouse;
 -- query schema_version and make sure the applied scripts match the list of pre-condensed scripts
@@ -100,3 +100,27 @@ INSERT INTO schema_version VALUES
 ```
 Since v1.0.0 has been released **DO NOT MODIFY OR CONDENSE THE RELEASE (V1_0_0_0/1) SCRIPTS EVER.** From this point, 
 condensing should happen for the next revision, perhaps V1_1_0_*.
+
+The V1_1_0 release scripts are condensed from the incremental scripts created during the development
+of release v1.1. As noted above, a db instance may be reset so the flyway table represents as if
+this script had been used instead of incremental updates.
+```sql
+USE warehouse;
+-- query schema_version and make sure the applied scripts match the list of pre-condensed scripts
+-- as noted in the condensed script, the last entry should be for V1_1_0_26__embargo_cleanup.sql:
+SELECT * FROM schema_version;
+-- if things look good, reset entries to match condensed scripts:
+DELETE FROM schema_version WHERE installed_rank > 3;
+INSERT INTO schema_version VALUES
+  (4, '1.1.0.0', 'update', 'SQL', 'V1_1_0_0__update.sql', -1057823690, 'root', '2017-12-22 17:04:22', 340542, 1),
+  (5, '1.1.0.1', 'audit', 'SQL', 'V1_1_0_1__audit.sql', -1798766498, 'root', '2017-12-22 17:04:23', 621, 1);
+
+USE reporting;
+-- query schema_version and make sure the applied scripts match the list of pre-condensed scripts
+-- as noted in the condensed script, the last entry should be for V1_1_0_16__migrate_embargo.sql
+SELECT * FROM schema_version;
+-- if things look good, reset entries to match condensed scripts:
+DELETE FROM schema_version WHERE installed_rank > 3;
+INSERT INTO schema_version VALUES
+  (4, '1.1.0.0', 'update', 'SQL', 'V1_1_0_0__update.sql', -720126536, 'root', '2017-12-22 16:58:34', 9533, 1);
+```
