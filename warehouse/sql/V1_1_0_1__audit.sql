@@ -24,22 +24,6 @@ CREATE TABLE setting (
 INSERT INTO setting (name, value) VALUES ('AUDIT_TRIGGER_ENABLE', 'TRUE');
 
 /*
-  Add created timestamp to child tables of parent being audited.
-  Audit records are created for update and delete.
-  Timestamp is required for exam updates that include creating a new child record.
-  Child records do not have the import id.
-
-  Through the application, after insert, some exam records can be updated, some deleted or both as noted below.
-  Triggers are added consistently for update and delete on all exam tables.
-*/
-
-ALTER TABLE student_group_membership
-  ADD COLUMN created timestamp(6) default CURRENT_TIMESTAMP(6) not null;
-
-ALTER TABLE user_student_group
-  ADD COLUMN created timestamp(6) default CURRENT_TIMESTAMP(6) not null;
-
-/*
   exam audit table and triggers
   exam can be updated
 */

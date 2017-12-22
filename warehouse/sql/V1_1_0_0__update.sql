@@ -69,7 +69,7 @@ ALTER TABLE exam
   ADD COLUMN economic_disadvantage tinyint,
   ADD COLUMN migrant_status tinyint,
   ADD COLUMN eng_prof_lvl varchar(20),
-  ADD COLUMN t3_program_type varchar(20),
+  ADD COLUMN t3_program_type varchar(30),
   ADD COLUMN language_code varchar(3),
   ADD COLUMN prim_disability_type varchar(3),
   -- add columns for new data from TRT
@@ -99,9 +99,7 @@ ALTER TABLE exam
   ADD COLUMN theta_score float,
   ADD COLUMN theta_score_std_err float,
   -- modify completed_at to have the same precision as other timestamps
-  MODIFY COLUMN completed_at TIMESTAMP(6) NOT NULL,
-  -- modify size of the t3_program_type column to account for all valid values
-  MODIFY COLUMN t3_program_type varchar(30);
+  MODIFY COLUMN completed_at TIMESTAMP(6) NOT NULL;
 
 -- add and set partition
 -- TODO - how many partitions for production?
