@@ -7,9 +7,10 @@ This project uses [flyway](https://flywaydb.org/getstarted). Gradle will take ca
 MySQL scripts are compatible with MySQL 5.6 and as well as AWS Aurora.
 
 #### To create the schema 
-There are multiple schemas in this project: a data warehouse ("warehouse") and a data mart ("reporting"). Each has a dev and integration-test-only instance on the server. 
-The Flyway configuration can be found in the main `build.gradle` file.
-Gradle can perform all of the flyway tasks defined [here](https://flywaydb.org/documentation/gradle/).
+There are multiple schemas in this project: a data warehouse ("warehouse"), a data mart ("reporting") and an OLAP
+store ("reporting_olap"). For warehouse and reporting there are two schemas: one for running the apps, the other 
+for running integration tests (with suffix _test). Gradle is configured to proxy all the flyway tasks defined 
+[here](https://flywaydb.org/documentation/gradle/).
 
 To install or migrate, run:
 ```bash
@@ -17,7 +18,7 @@ RDW_Schema$ ./gradlew migrateWarehouse (or migratewarehouse_test)
 OR
 RDW_Schema$ ./gradlew migrateReporting (or migratereporting_test)
 OR
-RDW_Schema$ ./gradlew migrateAll (migrates the dev and test instances for the schemas)
+RDW_Schema$ ./gradlew migrateAll (migrates the dev instances for the schemas)
 ```
 
 #### To wipe out the schema
@@ -29,33 +30,37 @@ OR
 RDW_Schema$ ./gradlew cleanAll 
 ```
 
-#### Alternate Properties
-The data source, user, password, etc. can be overridden on the command line, e.g.
-```bash
-RDW_Schema$ ./gradlew -Pflyway.url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -Pflyway.user=sbac -Pflyway.password=mypassword cleanAll
-or
-RDW_Schema$ ./gradlew -Pflyway.url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -Pflyway.user=sbac -Pflyway.password=mypassword -Pschemas=schema1 -Plocations=/migrateSql flywayMigrate
-
-```
-
-### Redshift
-After configuring Redshift, connect to the instance and create a schema and a user (make sure to replace user and password with your values):
-
-```sql
-create schema reporting_olap;
-create user your_user with password 'your_user_password';
-grant all privileges on schema reporting_olap TO your_user;
-alter user your_user set search_path = reporting_olap;
-```
-#### To wipe out and re-create tables in the schema
-```bash
-RDW_Schema$ ./gradlew -Pflyway.url=jdbc:redshift://rdw-dev.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/dev -Pflyway.user=your_user -Pflyway.password=your_user_password -Predshift_schema=reporting_olap cleanReporting_olap migrateReporting_olap
- ```
-     
 #### Other Commands
-To see a listing of all of the tasks available, run
+To see a listing of all of the tasks available, run (output will depend on properties):
 ```bash
 ./gradlew tasks
+
+------------------------------------------------------------
+All tasks runnable from root project
+------------------------------------------------------------
+
+... 
+
+Schema tasks
+------------
+cleanMigrate_olap - Drops all objects in the configured schemas.
+cleanReporting - Drops all objects in the configured schemas.
+cleanReporting_test - Drops all objects in the configured schemas.
+cleanWarehouse - Drops all objects in the configured schemas.
+cleanWarehouse_test - Drops all objects in the configured schemas.
+...
+migrateMigrate_olap - Migrates the schema to the latest version.
+migrateReporting - Migrates the schema to the latest version.
+migrateReporting_test - Migrates the schema to the latest version.
+migrateWarehouse - Migrates the schema to the latest version.
+migrateWarehouse_test - Migrates the schema to the latest version.
+
+SchemaGroup tasks
+-----------------
+cleanAll - Custom group task for: cleanReporting, cleanWarehouse
+cleanAll_test - Custom group task for: cleanReporting_test, cleanWarehouse_test
+migrateAll - Custom group task for: migrateReporting, migrateWarehouse
+migrateAll_test - Custom group task for: migrateReporting_test, migrateWarehouse_test
 ```
 
 Other task examples:
@@ -65,6 +70,45 @@ or
 RDW_Schema$ ./gradlew infoWarehouse
 or
 RDW_Schema$ ./gradlew repairWarehouse
+```
+
+#### Alternate Properties
+The flyway tasks use gradle properties to set the database url, schema, user, password, etc. These can be set in the
+`gradle.properties` file or overridden on the command line, e.g.
+```bash
+RDW_Schema$ ./gradlew -Pdatabase_url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -Pdatabase_user=sbac -Pdatabse_password=mypassword cleanAll
+```
+
+### Redshift
+After configuring Redshift, connect to the instance and create a user/schema, for example for developer Bob:
+
+```sql
+create schema reporting_bob;
+create user bob with password 'bob_redshift_password';
+grant all privileges on schema reporting_bob TO bob;
+alter user bob set search_path = reporting_bob;
+```
+
+IntelliJ developers: https://stackoverflow.com/questions/32319052/connect-intellij-to-amazon-redshift
+
+#### To wipe out and re-create tables for redshift
+To deal with just the redshift tables, use the `reporting_olap` tasks. Using the same example developer Bob:
+```bash
+RDW_Schema$ gradle -Predshift_url=jdbc:redshift://rdw-dev.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/dev \
+    -Predshift_user=bob -Predshift_password=bob_redshift_password -Predshift_schema=reporting_bob \
+    cleanReporting_olap migrateReporting_olap
+```
+
+When testing the OLAP migration process, there is also the MySQL migrate_olap schema to worry about. There are
+group tasks that combine reporting_olap and migrate_olap flyway tasks but they requires a lot of settings since 
+they are dealing with two separate AWS databases, e.g.:
+```bash
+RDW_Schema$ gradle \
+    -Predshift_url=jdbc:redshift://rdw-dev.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/dev \
+    -Predshift_schema=reporting_bob -Predshift_user=bob -Predshift_password=bob_redshift_password \
+    -Pdatabase_url=rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306 \
+    -Pmigrate_olap_schema=bob_migrate_olap -Pdatabase_user=bob -Pdatabase_password=bob_aurora_password \
+    cleanOlap migrateOlap    
 ```
 
 ### Developing

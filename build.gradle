@@ -26,7 +26,11 @@ if (project.hasProperty("buildNumber")) {
     project.setVersion(project.version.toString().replaceAll("SNAPSHOT", "${buildNumber}"))
 }
 
-//Setting up an easy mapping of simple name to task object
+// Gradle can't call a single task more than once because of its design, so this creates
+// individual tasks for each of the available flyway commands on all of our databases.
+// Task names end up like migrateReporting, cleanWarehouse_test, infoReporting_olap.
+
+// Setting up an easy mapping of simple name to task object
 def flywayActions = [migrate : org.flywaydb.gradle.task.FlywayMigrateTask,
                      clean   : org.flywaydb.gradle.task.FlywayCleanTask,
                      info    : org.flywaydb.gradle.task.FlywayInfoTask,
@@ -34,50 +38,51 @@ def flywayActions = [migrate : org.flywaydb.gradle.task.FlywayMigrateTask,
                      baseline: org.flywaydb.gradle.task.FlywayBaselineTask,
                      repair  : org.flywaydb.gradle.task.FlywayRepairTask]
 
-def reportingSchemas = ["reporting"]
-def warehouseSchemas = ["warehouse"]
-def migrateOlapSchemas = ["migrate_olap"]
-def reportingOlapSchemas = ["reporting_olap"]
+// Each config is [name, subdir, db-url, db-schema, db-username, db-password, driver, group]
+def configs = []
+// Only define mysql/aurora configs if required database properties are set.
+// Only define the migrate olap config if the migrate olap schema is set.
+// Only define redshift config if the required redshift schema is set.
+// The redshift configs don't have separate _test schemas because the schema is explicitly set.
+if (hasProperty('database_url') && database_url && hasProperty('database_user') && database_user) {
+    configs << ['reporting', 'reporting', database_url, 'reporting', database_user, database_password, 'com.mysql.jdbc.Driver', 'all']
+    configs << ['reporting_test', 'reporting', database_url, 'reporting_test', database_user, database_password, 'com.mysql.jdbc.Driver', 'all_test']
+    configs << ['warehouse', 'warehouse', database_url, 'warehouse', database_user, database_password, 'com.mysql.jdbc.Driver', 'all']
+    configs << ['warehouse_test', 'warehouse', database_url, 'warehouse_test', database_user, database_password, 'com.mysql.jdbc.Driver', 'all_test']
+    if (hasProperty('migrate_olap_schema') && migrate_olap_schema) {
+        configs << ['migrate_olap', 'migrate_olap', database_url, migrate_olap_schema, database_user, database_password, 'com.mysql.jdbc.Driver', 'olap']
+    }
+}
+if (hasProperty('redshift_url') && redshift_url && hasProperty('redshift_schema') && redshift_schema && hasProperty('redshift_user') && redshift_user) {
+    configs << ['reporting_olap', 'reporting_olap', redshift_url, redshift_schema, redshift_user, redshift_password, 'com.amazon.redshift.jdbc42.Driver', 'olap']
+}
 
-// Gradle can't call a single task more than once because of its design, so this creates
-// individual tasks for each of the available flyway commands on all of our databases.
-// Task names end up like migrateReporting, cleanWarehouse_test, infoReporting_olap.
-//
-// reporting_olap is treated a bit differently: because redshift can't run locally and instances
-// of redshift are expensive, we are using different schemas within redshift for developers and CI.
-(reportingSchemas + warehouseSchemas + migrateOlapSchemas + reportingOlapSchemas).each { schema ->
-    flywayActions.keySet().each { action ->
-        ["", "_test"].each { type ->
-            task(action + schema.capitalize() + type, type: flywayActions[action]) {
-                def realSchema = schema
-                locations = ['filesystem:' + rootDir.path + "/$schema/sql"]
-                if (schema == 'reporting_olap') {
-                    // for now, don't include redshift tasks in "All" tasks
-                    realSchema = redshift_schema
-                    url = redshift_url
-                    user = redshift_user
-                    password = redshift_password
-                    driver = 'com.amazon.redshift.jdbc42.Driver'
-                } else {
-                    group = "$action$type"
-                    url = database_url
-                    user = database_user
-                    password = database_password
-                    driver = 'com.mysql.jdbc.Driver'
-                }
-                schemas = ["$realSchema$type"]
-                placeholders = ["schemaName": "$realSchema$type"]
-            }
+def groupTasks = [:] // collect map of action+group -> list of tasks
+flywayActions.keySet().each { action ->
+    configs.each { config ->
+        def task = task(action + config[0].capitalize(), type: flywayActions[action]) {
+            locations = ['filesystem:' + [rootDir.path, config[1], 'sql'].join('/')]
+            url = config[2]
+            user = config[4]
+            password = config[5]
+            driver = config[6]
+            schemas = [config[3]]
+            placeholders = ['schemaName': config[3]]
+            group = 'Schema'
         }
+        groupTasks.get(action + config[7], []) << task
+        task
     }
 }
 
-def ts = project.getTasks()
-["clean", "migrate"].each { allTask ->
-    ["", "_test"].each { type ->
-        task("${allTask}All$type", dependsOn: [ts.findAll { it.property("group") == "$allTask$type" }]) {
-            group = "$allTask$type"
-            description = "Custom task to " + allTask.capitalize() + MessageFormat.format(" all objects in the configured {0} schemas.", type ? "test" : "production/development")
+// create group tasks for clean and migrate
+['clean', 'migrate'].each { action ->
+    ['all', 'all_test', 'olap'].each { configGroup ->
+        def subTasks = groupTasks.get(action + configGroup)
+        if (!subTasks || subTasks.size() < 2) return
+        task(action + configGroup.capitalize(), dependsOn: subTasks) {
+            group = 'SchemaGroup'
+            description = MessageFormat.format("Custom group task for: {0}", subTasks.collect() { task -> task.name }.join(', '))
         }
     }
 }
@@ -87,9 +92,10 @@ distributions {
     main {
         contents {
             from('.') {
-                include 'migrate_olap/**'
                 include 'reporting/**'
                 include 'warehouse/**'
+                include 'migrate_olap/**'
+                include 'reporting_olap/**'
                 include 'legacy_load/**'
                 include 'LICENSE'
                 include 'build.gradle'
