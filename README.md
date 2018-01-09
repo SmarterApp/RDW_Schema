@@ -82,17 +82,20 @@ RDW_Schema$ ./gradlew repairWarehouse
 The flyway tasks use gradle properties to set the database url, schema, user, password, etc. These can be set in the
 `gradle.properties` file or overridden on the command line, e.g.
 ```bash
-RDW_Schema$ ./gradlew -Pdatabase_url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -Pdatabase_user=sbac -Pdatabse_password=mypassword cleanAll
+RDW_Schema$ ./gradlew -Pdatabase_url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -Pdatabase_user=sbac -Pdatabse_password=mypassword infoReporting
 ```
 
 ### Redshift
-After configuring Redshift, connect to the instance and create a user/schema, for example for developer Bob:
+After configuring Redshift, connect to the instance and create a user/database, for example for developer Bob to
+do some testing:
 
 ```sql
-create schema reporting_bob;
+create database bob;
+\connect bob
+create schema reporting_test;
 create user bob with password 'bob_redshift_password';
-grant all privileges on schema reporting_bob TO bob;
-alter user bob set search_path = reporting_bob;
+grant all privileges on database bob to bob;
+alter user bob set search_path to reporting_test;
 ```
 
 IntelliJ developers: https://stackoverflow.com/questions/32319052/connect-intellij-to-amazon-redshift
@@ -100,20 +103,47 @@ IntelliJ developers: https://stackoverflow.com/questions/32319052/connect-intell
 #### To wipe out and re-create tables for redshift
 To deal with just the redshift tables, use the `reporting_olap` tasks. Using the same example developer Bob:
 ```bash
-RDW_Schema$ gradle -Predshift_url=jdbc:redshift://rdw-dev.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/dev \
-    -Predshift_user=bob -Predshift_password=bob_redshift_password -Predshift_schema=reporting_bob \
-    cleanReporting_olap migrateReporting_olap
+RDW_Schema$ gradle -Predshift_url=jdbc:redshift://rdw-dev.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/bob \
+    -Predshift_user=bob -Predshift_password=bob_redshift_password \
+    cleanReporting_olap_test migrateReporting_olap_test
 ```
 
 When testing the OLAP migration process, there is also the MySQL migrate_olap schema to worry about. The additional
-tasks can be specified but it requires a lot of settings dealing with two separate AWS databases, e.g.:
+tasks can be specified but it requires a lot of settings dealing with two separate AWS databases. Continuing with
+Bob, assume they have created `bob_migrate_olap_test` schema in the dev instance of Aurora:
 ```bash
 RDW_Schema$ gradle \
-    -Predshift_url=jdbc:redshift://rdw-dev.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/dev \
-    -Predshift_schema=reporting_bob -Predshift_user=bob -Predshift_password=bob_redshift_password \
+    -Predshift_url=jdbc:redshift://rdw-dev.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/bob \
+    -Predshift_user=bob -Predshift_password=bob_redshift_password \
     -Pdatabase_url=rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306 \
-    -Pmigrate_olap_schema=bob_migrate_olap -Pdatabase_user=bob -Pdatabase_password=bob_aurora_password \
-    cleanReporting_olap cleanMigrate_olap migrateReporting_olap migrateMigrate_olap    
+    -Pmigrate_olap_prefix=bob_ -Pdatabase_user=bob -Pdatabase_password=bob_aurora_password \
+    cleanReporting_olap_test cleanMigrate_olap_test migrateReporting_olap_test migrateMigrate_olap_test    
+```
+
+#### CI and QA
+For CI only the test schemas exist:
+```bash
+gradle \
+-Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/ci \
+-Predshift_user=ci -Predshift_password= \
+-Pdatabase_url=jdbc:mysql://rdw-aurora-ci.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306 \
+-Pdatabase_user=sbac -Pdatabase_password= \
+cleanAll_test migrateAll_test
+```
+
+For the `awsqa` instance there are two Aurora databases and we should never be cleaning the data:
+```bash
+gradle \
+-Pdatabase_url=jdbc:mysql://rdw-aurora-qa-warehouse.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/ \
+-Pdatabase_user=sbac -Pdatabase_password= \
+-Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/qa \
+-Predshift_user=awsqa -Predshift_password= \
+migrateWarehouse migrateMigrate_olap migrateReporting_olap
+
+gradle \
+-Pdatabase_url=jdbc:mysql://rdw-aurora-qa-reporting.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/ \
+-Pdatabase_user=sbac -Pdatabase_password= \
+migrateReporting
 ```
 
 ### Developing

@@ -38,33 +38,32 @@ def flywayActions = [migrate : org.flywaydb.gradle.task.FlywayMigrateTask,
                      baseline: org.flywaydb.gradle.task.FlywayBaselineTask,
                      repair  : org.flywaydb.gradle.task.FlywayRepairTask]
 
-// Each config is [name, subdir, db-url, db-schema, db-username, db-password, driver, group]
+// Each config is [name, subdir, db-url, db-schema, db-username, db-password, driver]
 def configs = []
-// Only define mysql/aurora configs if required database properties are set.
+// Only define mysql/aurora configs if required database url/user are set.
 // Only define the migrate olap config if the migrate olap schema is set.
-// Only define redshift config if the required redshift schema is set.
-// The redshift configs don't have separate _test schemas because the schema is explicitly set.
+// Only define redshift config if the required redshift url/user is set.
 if (hasProperty('database_url') && database_url && hasProperty('database_user') && database_user) {
     configs << ['reporting', 'reporting', database_url, 'reporting', database_user, database_password, 'com.mysql.jdbc.Driver']
     configs << ['reporting_test', 'reporting', database_url, 'reporting_test', database_user, database_password, 'com.mysql.jdbc.Driver']
     configs << ['warehouse', 'warehouse', database_url, 'warehouse', database_user, database_password, 'com.mysql.jdbc.Driver']
     configs << ['warehouse_test', 'warehouse', database_url, 'warehouse_test', database_user, database_password, 'com.mysql.jdbc.Driver']
-    if (hasProperty('migrate_olap_schema') && migrate_olap_schema) {
-        configs << ['migrate_olap', 'migrate_olap', database_url, migrate_olap_schema, database_user, database_password, 'com.mysql.jdbc.Driver']
-    } else {
-        configs << ['migrate_olap', 'database_url, database_user, migrate_olap_schema']
-    }
+    configs << ['migrate_olap', 'migrate_olap', database_url, migrate_olap_prefix + "migrate_olap", database_user, database_password, 'com.mysql.jdbc.Driver']
+    configs << ['migrate_olap_test', 'migrate_olap', database_url, migrate_olap_prefix + "migrate_olap_test", database_user, database_password, 'com.mysql.jdbc.Driver']
 } else {
     configs << ['reporting', 'database_url, database_user']
     configs << ['reporting_test', 'database_url, database_user']
     configs << ['warehouse', 'database_url, database_user']
     configs << ['warehouse_test', 'database_url, database_user']
-    configs << ['migrate_olap', 'database_url, database_user, migrate_olap_schema']
+    configs << ['migrate_olap', 'database_url, database_user, migrate_olap_prefix']
+    configs << ['migrate_olap_test', 'database_url, database_user, migrate_olap_prefix']
 }
-if (hasProperty('redshift_url') && redshift_url && hasProperty('redshift_schema') && redshift_schema && hasProperty('redshift_user') && redshift_user) {
-    configs << ['reporting_olap', 'reporting_olap', redshift_url, redshift_schema, redshift_user, redshift_password, 'com.amazon.redshift.jdbc42.Driver', 'olap']
+if (hasProperty('redshift_url') && redshift_url && hasProperty('redshift_user') && redshift_user) {
+    configs << ['reporting_olap', 'reporting_olap', redshift_url, 'reporting', redshift_user, redshift_password, 'com.amazon.redshift.jdbc42.Driver']
+    configs << ['reporting_olap_test', 'reporting_olap', redshift_url, 'reporting_test', redshift_user, redshift_password, 'com.amazon.redshift.jdbc42.Driver']
 } else {
-    configs << ['reporting_olap', 'redshift_url, redshift_schema, redshift_user']
+    configs << ['reporting_olap', 'redshift_url, redshift_user']
+    configs << ['reporting_olap_test', 'redshift_url, redshift_user']
 }
 
 def groupTasks = [:] // collect map of action+group -> list of tasks
@@ -93,13 +92,7 @@ flywayActions.keySet().each { action ->
             }
         }
         // Add this task to tasks for 'All' and 'All_test'
-        // Note that the olap tasks are added to both the 'All' and 'All_test' groups
-        if (taskName.endsWith('_test') || taskName.endsWith('_olap')) {
-            groupTasks.get(action + 'All_test', []) << schemaTask
-        }
-        if (!taskName.endsWith('_test')) {
-            groupTasks.get(action + 'All', []) << schemaTask
-        }
+        groupTasks.get(action + (taskName.endsWith('_test') ? 'All_test' : 'All'), []) << schemaTask
 
         schemaTask  // must return task from closure
     }
