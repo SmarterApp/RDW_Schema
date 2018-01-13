@@ -353,7 +353,7 @@ CREATE VIEW asmt_active(id, grade_id, school_year, subject_id, type_id) AS
     JOIN asmt a ON a.id = ay.asmt_id;
 
 -- Note that all three views below have the same structure so that they could be used interchangeably in the final query.
-CREATE VIEW state_subject_grade_school_year(organization_id, organization_name, organization_type, subject_id, grade_id, school_year, asmt_id, asmt_type_id) AS
+CREATE VIEW state_subject_grade_school_year(organization_id, organization_name, organization_type, organization_natural_id, subject_id, grade_id, school_year, asmt_id, asmt_type_id) AS
   SELECT
     -1          AS id,
     'State'     AS name,
@@ -369,12 +369,12 @@ CREATE VIEW state_subject_grade_school_year(organization_id, organization_name, 
     CROSS JOIN school_year y
     JOIN asmt_active a  on a.grade_id = g.id and a.subject_id = s.id and a.school_year = y.year;
 
-CREATE VIEW school_subject_grade_school_year(organization_id, organization_name, organization_type, subject_id, grade_id, school_year, asmt_id, asmt_type_id) AS
+CREATE VIEW school_subject_grade_school_year(organization_id, organization_name, organization_type, organization_natural_id, subject_id, grade_id, school_year, asmt_id, asmt_type_id) AS
   SELECT
     sch.id,
     sch.name,
     'School' AS organization_type,
-    sch.natural_id AS organization_natural_id,
+    sch.natural_id,
     s.id,
     g.id,
     year,
@@ -386,12 +386,12 @@ CREATE VIEW school_subject_grade_school_year(organization_id, organization_name,
     CROSS JOIN school_year y
     JOIN asmt_active a  on a.grade_id = g.id and a.subject_id = s.id and a.school_year = y.year;
 
-CREATE VIEW district_subject_grade_school_year(organization_id, organization_name, organization_type, subject_id, grade_id, school_year, asmt_id, asmt_type_id) AS
+CREATE VIEW district_subject_grade_school_year(organization_id, organization_name, organization_type, organization_natural_id, subject_id, grade_id, school_year, asmt_id, asmt_type_id) AS
   SELECT
     d.id,
     d.name,
     'District' AS organization_type,
-    d.natural_id AS organization_natural_id,
+    d.natural_id,
     s.id,
     g.id,
     year,
