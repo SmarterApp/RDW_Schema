@@ -42,7 +42,7 @@ CREATE TABLE staging_asmt (
   label character varying(255) NOT NULL,
   deleted boolean NOT NULL,
   migrate_id bigint NOT NULL,
-  updated timestamp without time zone NOT NULL,
+  updated timestamptz NOT NULL,
   update_import_id bigint NOT NULL
 ) DISTSTYLE ALL;
 
@@ -64,7 +64,7 @@ CREATE TABLE staging_school (
   district_group_id integer,
   deleted boolean NOT NULL,
   migrate_id bigint NOT NULL,
-  updated timestamp without time zone NOT NULL,
+  updated timestamptz NOT NULL,
   update_import_id bigint NOT NULL
 );
 
@@ -100,7 +100,7 @@ CREATE TABLE staging_student (
   gender_id smallint,
   deleted boolean NOT NULL,
   migrate_id bigint NOT NULL,
-  updated timestamp without time zone NOT NULL,
+  updated timestamptz  NOT NULL,
   update_import_id bigint NOT NULL
  );
 
@@ -129,9 +129,9 @@ CREATE TABLE staging_exam (
   scale_score_std_err float NOT NULL,
   performance_level smallint NOT NULL ,
   deleted boolean NOT NULL,
-  completed_at timestamp without time zone NOT NULL,
+  completed_at timestamptz NOT NULL,
   migrate_id bigint NOT NULL,
-  updated timestamp without time zone NOT NULL,
+  updated timestamptz NOT NULL,
   update_import_id bigint NOT NULL,
   latest boolean
 );
@@ -338,7 +338,7 @@ CREATE TABLE fact_student_exam (
 -- helper table used by the diagnostic API
 CREATE TABLE status_indicator (
   id smallint encode delta NOT NULL PRIMARY KEY,
-  updated timestamp DEFAULT current_timestamp
+  updated timestamptz DEFAULT current_timestamp
 );
 
 -- Views to support filling in missing data in the aggregate reports.
