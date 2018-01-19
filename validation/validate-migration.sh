@@ -8,14 +8,6 @@ function print_banner() {
     echo $'|__) |  \ |  |     |\/| | / _` |__)  /\   |  | /  \ |\ |    \  /  /\  |    | |  \  /\   |  /  \ |__) '
     echo $'|  \ |__/ |/\|     |  | | \__> |  \ /~~\  |  | \__/ | \|     \/  /~~\ |___ | |__/ /~~\  |  \__/ |  \ '
     echo $''
-    echo $''
-}
-
-function not_null() {
-    if [ -z $1 ]; then
-        echo "$2 must not be null"
-        exit 1
-    fi
 }
 
 function now_in_seconds() {
@@ -30,34 +22,18 @@ function format_seconds_to_HH_MM_SS() {
     echo `date -u -r $1 +%T`
 }
 
-function get_absolute_path() {
-    local basedir=`cd "$(dirname "$0")" ; pwd -P`
-    echo "${basedir}/${1}"
-}
-
-function get_line_count() {
-    cat $1 | wc -l
-}
-
 function get_property_by_index() {
     echo $1 | cut -f${2} -d"|"
 }
 
 function print_connection() {
     declare -a connection=("${!1}")
-    echo "${connection[0]}:${connection[1]}:${connection[2]}:${connection[3]}"
-}
-
-function create_mysql_password_file() {
-    local password=$1
-    local file_path=`mktemp`
-    echo -e "[client]\npassword=${password}" > ${file_path} && chmod 600 ${file_path}
-    echo ${file_path}
+    echo "${connection[3]} @ ${connection[0]}:${connection[1]}/${connection[2]}"
 }
 
 function mysql_to_csv() {
     declare -a connection=("${!1}")
-    mysql -h ${connection[0]} -P ${connection[1]} -u ${connection[3]} ${connection[2]} -p${connection[4]} -s < ${sql_file} | tr '\t' ','
+    mysql -h ${connection[0]} -P ${connection[1]} -u ${connection[3]} ${connection[2]} -p${connection[4]} -s < ${sql_file} 2>&1 | grep -v "Warning: Using a password" | tr '\t' ','
 }
 
 function psql_to_csv() {
@@ -69,7 +45,7 @@ function run_tests() {
     declare -a tests=("${!1}")
     for test in "${tests[@]}"
     do
-        run_test_and_compare_restults ${test} $2 $3 $4 $5
+        run_test_and_compare_results ${test} $2 $3 $4 $5
     done
 }
 
@@ -100,40 +76,26 @@ function compare_test_results() {
 
     diff ${diff_options} ${a} ${b} > ${comparison_file}
 
-    local total_differences=$(( `get_line_count ${comparison_file}` ))
+    local total_differences=$(( `cat ${comparison_file} | wc -l` ))
+
+    mkdir -p ${test_result_dir}
+    mv ${a} ${test_result_dir}/${a_namespace}.csv
+    mv ${b} ${test_result_dir}/${b_namespace}.csv
 
     if [ "${total_differences}" == "0" ]; then
+        let passed++
         echo "  ${a_namespace}/${b_namespace} (passed)"
     else
         local diff_file=${test_result_dir}/${a_namespace}_${b_namespace}.diff
-        mkdir -p ${test_result_dir}
-        mv ${a} ${test_result_dir}/${a_namespace}.csv
-        mv ${b} ${test_result_dir}/${b_namespace}.csv
         mv ${comparison_file} ${diff_file}
-        echo "  ${a_namespace}/${b_namespace} (${total_differences} differences) ${test_result_dir}"
+        diff_files+=(${diff_file})
+        echo "  ${a_namespace}/${b_namespace} (${total_differences} differences) ${diff_file}"
     fi
 }
 
 # setting dependent methods
 
-function validate_input() {
-    not_null ${warehouse_host} "warehouse_host"
-    not_null ${warehouse_port} "warehouse_port"
-    not_null ${warehouse_schema} "warehouse_schema"
-    not_null ${warehouse_user} "warehouse_user"
-
-    not_null ${reporting_host} "reporting_host"
-    not_null ${reporting_port} "reporting_port"
-    not_null ${reporting_schema} "reporting_schema"
-    not_null ${reporting_user} "reporting_user"
-
-    not_null ${reporting_olap_host} "reporting_olap_host"
-    not_null ${reporting_olap_port} "reporting_olap_port"
-    not_null ${reporting_olap_schema} "reporting_olap_schema"
-    not_null ${reporting_olap_user} "reporting_olap_user"
-}
-
-function run_test_and_compare_restults() {
+function run_test_and_compare_results() {
 
     # expand pipe delimited test object into variables
     local test_name=`get_property_by_index $1 1`
@@ -144,7 +106,7 @@ function run_test_and_compare_restults() {
     # get data from reporting_olap and compare
     local the_reporting_sql=${sql_dir}/${test_name}/${reporting_sql}.sql
     if [ -f ${the_reporting_sql} ]; then
-        echo "Running Test: ${test_name} *******************"
+        echo "`date -u +%T` Running Test: ${test_name}"
 
         echo "getting data from warehouse"
         # get data from warehouse
@@ -160,19 +122,25 @@ function run_test_and_compare_restults() {
 
 function print_settings() {
     echo "validating..."
-    echo ''
-    echo " warehouse connection: $(print_connection warehouse_connection[@])"
-    echo " reporting connection : $(print_connection reporting_connection[@])"
-    echo " reporting olap connection: $(print_connection reporting_olap_connection[@])"
+    echo "  output folder: ${out_dir}"
+    echo "  warehouse connection:      $(print_connection warehouse_connection[@])"
+    echo "  reporting connection:      $(print_connection reporting_connection[@])"
+    echo "  reporting olap connection: $(print_connection reporting_olap_connection[@])"
     echo ''
 }
 
 function print_summary() {
     local end_time=`now_in_seconds`
     local elapsed_time_formatted=`format_seconds_to_HH_MM_SS $(($end_time-$start_time))`
-
     echo "completed in ${elapsed_time_formatted}"
-    echo ''
+
+    echo "${passed} tests passed with no differences"
+    if [ ${#diff_files[@]} -gt 0 ]; then
+        echo "differences found:"
+        for f in ${diff_files[@]}; do
+            echo "  $f"
+        done
+    fi
 }
 
 ### Entry Point ###
@@ -180,9 +148,34 @@ function print_summary() {
 print_banner
 
 # process input
-not_null $1 "argument 1: config file path"
+if [ ! -f "$1" ]; then
+  echo "usage: validate-migration <config-file> [olap|reporting]"
+  exit 1
+fi
 source $1
-validate_input
+
+# what tests will be run?
+[ $# == 1 ] || [ $2 == reporting ] && run_reporting=1 || run_reporting=0
+[ $# == 1 ] || [ $2 == olap ] && run_olap=1 || run_olap=0
+
+# validate settings and exit if any values not set or empty
+[ -z "${warehouse_host}" ] && echo "warehouse_host must be set" && exit 1
+[ -z "${warehouse_port}" ] && echo "warehouse_port must be set" && exit 1
+[ -z "${warehouse_schema}" ] && echo "warehouse_schema must be set" && exit 1
+[ -z "${warehouse_user}" ] && echo "warehouse_user must be set" && exit 1
+[ -z "${warehouse_password}" ] && echo "warehouse_password must be set" && exit 1
+
+[ ${run_reporting} == 1 ] && [ -z "${reporting_host}" ] && echo "reporting_host must be set" && exit 1
+[ ${run_reporting} == 1 ] && [ -z "${reporting_port}" ] && echo "reporting_port must be set" && exit 1
+[ ${run_reporting} == 1 ] && [ -z "${reporting_schema}" ] && echo "reporting_schema must be set" && exit 1
+[ ${run_reporting} == 1 ] && [ -z "${reporting_user}" ] && echo "reporting_user must be set" && exit 1
+[ ${run_reporting} == 1 ] && [ -z "${reporting_password}" ] && echo "reporting_password must be set" && exit 1
+
+[ ${run_olap} == 1 ] && [ -z "${reporting_olap_host}" ] && echo "reporting_olap_host must be set" && exit 1
+[ ${run_olap} == 1 ] && [ -z "${reporting_olap_port}" ] && echo "reporting_olap_port must be set" && exit 1
+[ ${run_olap} == 1 ] && [ -z "${reporting_olap_db}" ] && echo "reporting_olap_db must be set" && exit 1
+[ ${run_olap} == 1 ] && [ -z "${reporting_olap_user}" ] && echo "reporting_olap_user must be set" && exit 1
+[ ${run_olap} == 1 ] && [ -z "${reporting_olap_password}" ] && echo "reporting_olap_password must be set" && exit 1
 
 # settings
 start_time=`now_in_seconds`
@@ -190,11 +183,13 @@ base_dir=`cd "$(dirname "$0")" ; pwd -P`
 sql_dir=${base_dir}/sql
 out_dir="${base_dir}/results-$(now_in_YYYY_mm_dd_HHMMSS)"
 diff_options="-y --suppress-common-lines"
+passed=0
+diff_files=()
 
 # (host port schema user password)
 declare -a warehouse_connection=("${warehouse_host}" "${warehouse_port}" "${warehouse_schema}" "${warehouse_user}" "${warehouse_password}")
 declare -a reporting_connection=("${reporting_host}" "${reporting_port}" "${reporting_schema}" "${reporting_user}" "${reporting_password}")
-declare -a reporting_olap_connection=("${reporting_olap_host}" "${reporting_olap_port}" "${reporting_olap_schema}" "${reporting_olap_user}" "${reporting_olap_password}")
+declare -a reporting_olap_connection=("${reporting_olap_host}" "${reporting_olap_port}" "${reporting_olap_db}" "${reporting_olap_user}" "${reporting_olap_password}")
 
 # type|test_name|query,result,headers,csv
 declare -a tests=(
@@ -209,13 +204,13 @@ declare -a tests=(
 )
 
 print_settings
-if [ $# == 1 ] || [ $2 == olap ]; then
+if [ ${run_olap} == 1 ]; then
     echo "************ Running reporting olap tests ************"
     # 'olap_reporting' and 'olap_warehouse' are used to lookup the SQL test files, they also dictate the naming of the output csv and diff files
     run_tests tests[@] psql olap_reporting  olap_warehouse reporting_olap_connection[@]
 fi
 
-if [ $# == 1 ] || [ $2 == reporting ]; then
+if [ ${run_reporting} == 1 ]; then
       echo "************ Running reporting tests ************"
       # 'reporting' and 'warehouse' are used to lookup the SQL test files, they also dictate the naming of the output csv and diff files
       run_tests tests[@] mysql reporting warehouse reporting_connection[@]
