@@ -10,8 +10,7 @@ CREATE TABLE staging_state_subject_grade_school_year (
   asmt_id                 INT                    NOT NULL,
   asmt_label              CHARACTER VARYING(255) NOT NULL,
   asmt_type_id            SMALLINT               NOT NULL
-) DISTSTYLE ALL COMPOUND SORTKEY (school_year, grade_id, subject_id, asmt_type_id
-);
+) ;
 
 CREATE TABLE staging_school_subject_grade_school_year (
   organization_id         INT                    NOT NULL,
@@ -25,7 +24,6 @@ CREATE TABLE staging_school_subject_grade_school_year (
   asmt_id                 INT                    NOT NULL,
   asmt_label              CHARACTER VARYING(255) NOT NULL,
   asmt_type_id            SMALLINT               NOT NULL
-) DISTSTYLE ALL COMPOUND SORTKEY (school_year, grade_id, subject_id, asmt_type_id
 );
 
 CREATE TABLE staging_district_subject_grade_school_year (
@@ -40,7 +38,6 @@ CREATE TABLE staging_district_subject_grade_school_year (
   asmt_id                 INT                    NOT NULL,
   asmt_label              CHARACTER VARYING(255) NOT NULL,
   asmt_type_id            SMALLINT               NOT NULL
-) DISTSTYLE ALL COMPOUND SORTKEY (school_year, grade_id, subject_id, asmt_type_id
 );
 
 
@@ -121,7 +118,7 @@ CREATE TABLE school_subject_grade_school_year (
   asmt_id                 INT                    NOT NULL,
   asmt_label              CHARACTER VARYING(255) NOT NULL,
   asmt_type_id            SMALLINT               NOT NULL
-) DISTSTYLE ALL COMPOUND SORTKEY (school_year, grade_id, subject_id, asmt_type_id
+) DISTSTYLE ALL COMPOUND SORTKEY (organization_id, grade_id, school_year, subject_id, asmt_type_id
 );
 
 CREATE TABLE district_subject_grade_school_year (
@@ -136,8 +133,7 @@ CREATE TABLE district_subject_grade_school_year (
   asmt_id                 INT                    NOT NULL,
   asmt_label              CHARACTER VARYING(255) NOT NULL,
   asmt_type_id            SMALLINT               NOT NULL
-) DISTSTYLE ALL COMPOUND SORTKEY (school_year, grade_id, subject_id, asmt_type_id
-);
+) DISTSTYLE ALL COMPOUND SORTKEY (organization_id, grade_id, school_year, subject_id, asmt_type_id);
 
 
 INSERT INTO state_subject_grade_school_year (organization_id, organization_name, organization_type, organization_natural_id, subject_id, subject_code, grade_id, school_year, asmt_id, asmt_label, asmt_type_id)
