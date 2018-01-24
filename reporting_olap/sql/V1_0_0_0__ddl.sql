@@ -243,7 +243,7 @@ CREATE TABLE state_embargo (
 );
 
 CREATE TABLE asmt (
-  id int encode raw NOT NULL PRIMARY KEY SORTKEY,
+  id bigint encode raw NOT NULL PRIMARY KEY SORTKEY,
   grade_id smallint NOT NULL,
   school_year smallint NOT NULL,
   subject_id smallint NOT NULL,
@@ -253,7 +253,7 @@ CREATE TABLE asmt (
   migrate_id bigint encode delta NOT NULL,
   updated timestamptz NOT NULL,
   update_import_id bigint encode delta NOT NULL,
-  CONSTRAINT fk__asmt__type FOREIGN KEY(type_id) REFERENCES asmt(id),
+  CONSTRAINT fk__asmt__type FOREIGN KEY(type_id) REFERENCES asmt_type(id),
   CONSTRAINT fk__asmt__subject FOREIGN KEY(subject_id) REFERENCES subject(id),
   CONSTRAINT fk__asmt__grade FOREIGN KEY(grade_id) REFERENCES grade(id),
   CONSTRAINT fk__asmt__school_year FOREIGN KEY(school_year) REFERENCES school_year(year)
@@ -295,6 +295,7 @@ CREATE TABLE fact_student_exam (
   school_id integer encode raw NOT NULL,
   student_id bigint encode raw NOT NULL DISTKEY,
   asmt_id bigint encode raw NOT NULL,
+  asmt_grade_id smallint encode raw NOT NULL,
   grade_id smallint encode lzo NOT NULL,
   school_year smallint encode raw NOT NULL,
   iep smallint encode lzo NOT NULL,
@@ -332,7 +333,7 @@ CREATE TABLE fact_student_exam (
   CONSTRAINT fk__fact_student_exam__section504 FOREIGN KEY(section504) REFERENCES boolean(id),
   CONSTRAINT fk__fact_student_exam__economic_disadvantage FOREIGN KEY(economic_disadvantage) REFERENCES strict_boolean(id),
   CONSTRAINT fk__fact_student_exam__migrant_status FOREIGN KEY(migrant_status) REFERENCES boolean(id)
-)  INTERLEAVED SORTKEY (school_year, asmt_id, school_id, student_id);
+)  INTERLEAVED SORTKEY (asmt_grade_id, school_year, asmt_id, school_id, student_id);
 
 -- helper table used by the diagnostic API
 CREATE TABLE status_indicator (
