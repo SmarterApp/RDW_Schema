@@ -18,7 +18,7 @@ INSERT INTO user_report_metadata (report_id, name, value)
     CAST(r.complete_chunk_count AS CHAR)
   FROM user_report r
   WHERE
-    r.complete_chunk_count > 0;
+    r.total_chunk_count > 0;
 
 ALTER TABLE user_report
   DROP COLUMN total_chunk_count,
