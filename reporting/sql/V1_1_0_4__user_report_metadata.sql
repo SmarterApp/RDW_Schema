@@ -1,5 +1,7 @@
 -- Add user report metadata to contain report-type-specific information
 
+USE ${schemaName};
+
 CREATE TABLE user_report_metadata (
   report_id BIGINT NOT NULL,
   name VARCHAR(50) NOT NULL,
