@@ -245,8 +245,10 @@ CREATE TABLE state_embargo (
 CREATE TABLE asmt (
   id int encode raw NOT NULL PRIMARY KEY,
   grade_id smallint NOT NULL,
+  grade_code character varying(2) NOT NULL,
   school_year smallint NOT NULL,
   subject_id smallint NOT NULL,
+  subject_code character varying(10) NOT NULL,
   type_id smallint NOT NULL,
   name character varying(250) NOT NULL,
   label character varying(255) NOT NULL,
