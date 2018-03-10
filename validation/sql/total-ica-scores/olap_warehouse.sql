@@ -1,11 +1,9 @@
 SELECT
     sum(scale_score),
-    sum(scale_score_std_err),
     sum(performance_level)
     FROM (
       SELECT
              e1.scale_score,
-             e1.scale_score_std_err,
              e1.performance_level
            FROM exam AS e1
              LEFT OUTER JOIN exam AS e2
