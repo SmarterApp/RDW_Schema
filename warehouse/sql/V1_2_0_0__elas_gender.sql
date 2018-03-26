@@ -1,7 +1,7 @@
 -- Flyway script to add ELAS (English Language Acquisition Status) and unknown gender
 --
--- ELAS: this is a new attribute for students. It overlaps with LEP (if LEP=YES then ELAS=EL) but will
--- be treated as an independent, optional attribute. LEP will be changed to be optional as well.
+-- ELAS: this is a new attribute for students. It overlaps with LEP but will be treated as
+-- an independent, optional attribute. LEP will be changed to be optional as well.
 
 USE ${schemaName};
 
@@ -24,4 +24,4 @@ INSERT INTO elas (id, code) VALUES
 ALTER TABLE exam
   MODIFY COLUMN lep TINYINT NULL,
   ADD COLUMN elas_id TINYINT NULL,
-  ADD COLUMN elas_start_at DATE
+  ADD COLUMN elas_start_at DATE NULL
