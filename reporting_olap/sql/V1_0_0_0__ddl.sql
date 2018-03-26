@@ -310,15 +310,14 @@ CREATE TABLE fact_student_exam (
   school_year smallint encode raw NOT NULL,
   iep smallint encode lzo NOT NULL,
   lep smallint encode lzo NOT NULL,
-  -- ??? it seems we don't want NULL fields so what should be done here? add an 'unknown' value? or is null okay?
-  elas_id smallint encode lzo,
+  elas_id smallint encode lzo NOT NULL,
   section504 smallint encode lzo NOT NULL,
   economic_disadvantage smallint encode lzo NOT NULL,
   migrant_status smallint encode lzo NOT NULL,
   completeness_id smallint encode lzo NOT NULL,
   administration_condition_id smallint encode lzo NOT NULL,
-  scale_score float NOT NULL encode bytedict ,
-  performance_level smallint NOT NULL encode lzo,
+  scale_score float encode bytedict NOT NULL,
+  performance_level smallint encode lzo NOT NULL,
   completed_at timestamptz encode lzo NOT NULL,
   migrate_id bigint encode delta NOT NULL,
   updated timestamptz NOT NULL,
@@ -330,8 +329,8 @@ CREATE TABLE fact_student_exam (
   CONSTRAINT fk__fact_student_exam__iep FOREIGN KEY(iep) REFERENCES strict_boolean(id),
   CONSTRAINT fk__fact_student_exam__lep FOREIGN KEY(lep) REFERENCES strict_boolean(id),
   CONSTRAINT fk__fact_student_exam__elas FOREIGN KEY(elas_id) REFERENCES elas(id),
-  -- ??? why don't administration_condition_id, completeness_id have FKs?
-  -- ??? i don't see section504 ever being set to anything but 0/1 so why boolean and not strict_boolean?
+  CONSTRAINT fk__fact_student_exam__completeness FOREIGN KEY(completeness_id) REFERENCES completeness(id),
+  CONSTRAINT fk__fact_student_exam__administration_comdition FOREIGN KEY(administration_condition_id) REFERENCES administration_condition(id),
   CONSTRAINT fk__fact_student_exam__section504 FOREIGN KEY(section504) REFERENCES boolean(id),
   CONSTRAINT fk__fact_student_exam__economic_disadvantage FOREIGN KEY(economic_disadvantage) REFERENCES strict_boolean(id),
   CONSTRAINT fk__fact_student_exam__migrant_status FOREIGN KEY(migrant_status) REFERENCES boolean(id)
@@ -347,7 +346,7 @@ CREATE TABLE fact_student_iab_exam (
   school_year smallint encode raw NOT NULL,
   iep smallint encode lzo NOT NULL,
   lep smallint encode lzo NOT NULL,
-  elas_id smallint encode lzo,
+  elas_id smallint encode lzo NOT NULL,
   section504 smallint encode lzo NOT NULL,
   economic_disadvantage smallint encode lzo NOT NULL,
   migrant_status smallint encode lzo NOT NULL,
@@ -366,6 +365,8 @@ CREATE TABLE fact_student_iab_exam (
   CONSTRAINT fk__fact_student_iab_exam__iep FOREIGN KEY(iep) REFERENCES strict_boolean(id),
   CONSTRAINT fk__fact_student_iab_exam__lep FOREIGN KEY(lep) REFERENCES strict_boolean(id),
   CONSTRAINT fk__fact_student_iab_exam__elas FOREIGN KEY(elas_id) REFERENCES elas(id),
+  CONSTRAINT fk__fact_student_exam__completeness FOREIGN KEY(completeness_id) REFERENCES completeness(id),
+  CONSTRAINT fk__fact_student_exam__administration_comdition FOREIGN KEY(administration_condition_id) REFERENCES administration_condition(id),
   CONSTRAINT fk__fact_student_iab_exam__section504 FOREIGN KEY(section504) REFERENCES boolean(id),
   CONSTRAINT fk__fact_student_iab_exam__economic_disadvantage FOREIGN KEY(economic_disadvantage) REFERENCES strict_boolean(id),
   CONSTRAINT fk__fact_student_iab_exam__migrant_status FOREIGN KEY(migrant_status) REFERENCES boolean(id)
