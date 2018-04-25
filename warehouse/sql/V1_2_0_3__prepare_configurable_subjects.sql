@@ -6,7 +6,7 @@ USE ${schemaName};
 
 -- Warehouse translation table for holding English message translations provided
 -- with the subject XML
-CREATE TABLE IF NOT EXISTS translation (
+CREATE TABLE translation (
   namespace VARCHAR(10),
   label_code VARCHAR(128),
   language_code VARCHAR(3),  -- Should this be assumed as "eng" ?
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS translation (
 );
 
 -- Table for holding subject configurations in the context of an assessment type
-CREATE TABLE IF NOT EXISTS asmt_type_subject (
+CREATE TABLE asmt_type_subject (
   asmt_type_id TINYINT,
   subject_id TINYINT,
   performance_levels TINYINT,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS asmt_type_subject (
 );
 
 -- Table for holding hierarchical item categories (replaces claim and target tables)
-CREATE TABLE IF NOT EXISTS item_category (
+CREATE TABLE item_category (
   id SMALLINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   subject_id TINYINT,
   parent_id SMALLINT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS item_category (
 );
 
 -- Create sub-score table for holding category (claim and target) scores.
-CREATE TABLE IF NOT EXISTS exam_sub_scores (
+CREATE TABLE exam_sub_scores (
   exam_id BIGINT,
   category_id SMALLINT,
   scale_score SMALLINT,
