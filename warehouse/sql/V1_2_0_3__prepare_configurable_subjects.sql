@@ -15,7 +15,7 @@ CREATE TABLE translation (
 );
 
 -- Table for holding subject configurations in the context of an assessment type
-CREATE TABLE asmt_type_subject (
+CREATE TABLE subject_asmt_type (
   asmt_type_id TINYINT,
   subject_id TINYINT,
   performance_levels TINYINT,
@@ -25,8 +25,8 @@ CREATE TABLE asmt_type_subject (
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY(asmt_type_id, subject_id),
-  CONSTRAINT fk__asmt_type_subject__asmt_type FOREIGN KEY (asmt_type_id) REFERENCES asmt_type(id),
-  CONSTRAINT fk__asmt_type_subject__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
+  CONSTRAINT fk__subject_asmt_type__asmt_type FOREIGN KEY (asmt_type_id) REFERENCES asmt_type(id),
+  CONSTRAINT fk__subject_asmt_type__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
 );
 
 -- Table for holding hierarchical item categories (replaces claim and target tables)
@@ -46,11 +46,15 @@ CREATE TABLE item_category (
 CREATE TABLE exam_sub_scores (
   exam_id BIGINT,
   category_id SMALLINT,
-  scale_score SMALLINT,
+  scale_score FLOAT,
   scale_score_std_err FLOAT,
   performance_level TINYINT,
   theta_score FLOAT,
   theta_score_std_err FLOAT,
+  residual_overall_score FLOAT,
+  residual_overall_score_std_err FLOAT,
+  residual_standard_met_score FLOAT,
+  residual_standard_met_score_std_err FLOAT,
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY(exam_id, category_id),
   CONSTRAINT fk__exam_sub_scores__exam FOREIGN KEY (exam_id) REFERENCES exam(id),
