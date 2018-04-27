@@ -70,6 +70,13 @@ ALTER TABLE item_other_target
   ADD COLUMN category_id SMALLINT,
   ADD CONSTRAINT fk__item_other_target__item_category FOREIGN KEY (category_id) REFERENCES item_category(id);
 
+-- Modify subject table to act as import/migration root
+ALTER TABLE subject
+  ADD COLUMN created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ADD COLUMN updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  ADD COLUMN import_id BIGINT,
+  ADD COLUMN update_import_id BIGINT;
+
 -- TODO after Ingest completion:
 -- migrate existing item claim/target references to category references
 -- migrate existing exam_claim_score rows to exam_sub_scores
