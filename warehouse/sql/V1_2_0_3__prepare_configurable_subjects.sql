@@ -4,14 +4,13 @@
 
 USE ${schemaName};
 
--- Warehouse translation table for holding English message translations provided
--- with the subject XML
-CREATE TABLE translation (
+-- Warehouse label table for holding English label key/value pairs.
+-- Functionally, these should be migrated to reporting as "eng" translation values.
+CREATE TABLE label (
   namespace VARCHAR(10) NOT NULL,
   label_code VARCHAR(128) NOT NULL,
-  language_code VARCHAR(3) NOT NULL,  -- Should this be assumed as "eng" ?
   label TEXT,
-  PRIMARY KEY(namespace, label_code, language_code)
+  PRIMARY KEY(namespace, label_code)
 );
 
 -- Table for holding subject configurations in the context of an assessment type
