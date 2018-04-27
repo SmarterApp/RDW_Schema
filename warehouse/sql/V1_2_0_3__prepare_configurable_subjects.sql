@@ -10,6 +10,7 @@ CREATE TABLE label (
   namespace VARCHAR(10) NOT NULL,
   label_code VARCHAR(128) NOT NULL,
   label TEXT,
+  -- add import columns
   PRIMARY KEY(namespace, label_code)
 );
 
