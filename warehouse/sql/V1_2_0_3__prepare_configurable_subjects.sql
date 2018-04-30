@@ -10,7 +10,10 @@ CREATE TABLE label (
   namespace VARCHAR(10) NOT NULL,
   label_code VARCHAR(128) NOT NULL,
   label TEXT,
-  -- add import columns
+  import_id BIGINT,
+  update_import_id BIGINT,
+  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY(namespace, label_code)
 );
 
