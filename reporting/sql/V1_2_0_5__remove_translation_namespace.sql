@@ -20,5 +20,8 @@ INSERT INTO new_translation (label_code, language_code, label)
   FROM translation;
 
 DROP TABLE translation;
-
 RENAME TABLE new_translation TO translation;
+
+-- Remove the `namespace` column from the translation staging table.
+ALTER TABLE staging_translation
+  DROP COLUMN namespace;
