@@ -17,4 +17,4 @@ RENAME TABLE translation TO accommodation_translation;
 ALTER TABLE staging_translation
   DROP COLUMN namespace;
 
-RENAME TABLE staging_translation TO accommodation_staging_translation;
+RENAME TABLE staging_translation TO staging_accommodation_translation;
