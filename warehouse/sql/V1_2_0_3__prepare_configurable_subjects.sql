@@ -4,17 +4,40 @@
 
 USE ${schemaName};
 
--- Warehouse label table for holding English label key/value pairs.
+-- Drop foreign keys to allow for modifying the subject id column
+ALTER TABLE asmt DROP FOREIGN KEY fk__asmt__subject;
+ALTER TABLE claim DROP FOREIGN KEY fk__claim__subject;
+ALTER TABLE common_core_standard DROP FOREIGN KEY fk__common_core_standard__subject;
+ALTER TABLE depth_of_knowledge DROP FOREIGN KEY fk__depth_of_knowledge__subject;
+ALTER TABLE item_difficulty_cuts DROP FOREIGN KEY fk__item_difficulty_cuts__subject;
+ALTER TABLE student_group DROP FOREIGN KEY fk__student_group__subject;
+ALTER TABLE subject_claim_score DROP FOREIGN KEY fk__subject_claim_score__subject;
+
+-- Modify subject table to act as import/migration root
+ALTER TABLE subject
+  MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL,
+  ADD COLUMN created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ADD COLUMN updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  ADD COLUMN import_id BIGINT,
+  ADD COLUMN update_import_id BIGINT;
+
+-- Replace foreign keys after modifying the subject id column
+ALTER TABLE asmt ADD CONSTRAINT fk__asmt__subject FOREIGN KEY (subject_id) REFERENCES subject(id);
+ALTER TABLE claim ADD CONSTRAINT fk__claim__subject FOREIGN KEY (subject_id) REFERENCES subject(id);
+ALTER TABLE common_core_standard ADD CONSTRAINT fk__common_core_standard__subject FOREIGN KEY (subject_id) REFERENCES subject(id);
+ALTER TABLE depth_of_knowledge ADD CONSTRAINT fk__depth_of_knowledge__subject FOREIGN KEY (subject_id) REFERENCES subject(id);
+ALTER TABLE item_difficulty_cuts ADD CONSTRAINT fk__item_difficulty_cuts__subject FOREIGN KEY (subject_id) REFERENCES subject(id);
+ALTER TABLE student_group ADD CONSTRAINT fk__student_group__subject FOREIGN KEY (subject_id) REFERENCES subject(id);
+ALTER TABLE subject_claim_score ADD CONSTRAINT fk__subject_claim_score__subject FOREIGN KEY (subject_id) REFERENCES subject(id);
+
+-- Warehouse label table for holding Subject-scoped English label key/value pairs.
 -- Functionally, these should be migrated to reporting as "eng" translation values.
-CREATE TABLE label (
-  namespace VARCHAR(10) NOT NULL,
+CREATE TABLE subject_translation (
+  subject_id TINYINT NOT NULL,
   label_code VARCHAR(128) NOT NULL,
   label TEXT,
-  import_id BIGINT,
-  update_import_id BIGINT,
-  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY(namespace, label_code)
+  PRIMARY KEY(subject_id, label_code),
+  CONSTRAINT fk__subject_translation__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
 );
 
 -- Table for holding subject configurations in the context of an assessment type
@@ -72,13 +95,6 @@ ALTER TABLE item
 ALTER TABLE item_other_target
   ADD COLUMN category_id SMALLINT,
   ADD CONSTRAINT fk__item_other_target__item_category FOREIGN KEY (category_id) REFERENCES item_category(id);
-
--- Modify subject table to act as import/migration root
-ALTER TABLE subject
-  ADD COLUMN created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  ADD COLUMN updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  ADD COLUMN import_id BIGINT,
-  ADD COLUMN update_import_id BIGINT;
 
 -- TODO after Ingest completion:
 -- migrate existing item claim/target references to category references
