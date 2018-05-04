@@ -69,6 +69,7 @@ CREATE TABLE item_category (
 );
 
 -- Create sub-score table for holding category (claim and target) scores.
+-- TODO alter exam_claim_score
 CREATE TABLE exam_sub_scores (
   exam_id BIGINT NOT NULL,
   category_id SMALLINT NOT NULL,
