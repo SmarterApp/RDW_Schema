@@ -54,6 +54,7 @@ CREATE TABLE subject_asmt_type (
   CONSTRAINT fk__subject_asmt_type__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
 );
 
+-- Add display_order information to scorable claims.
 ALTER TABLE subject_claim_score
   ADD COLUMN display_order TINYINT;
 
