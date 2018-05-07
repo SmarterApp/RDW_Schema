@@ -135,8 +135,4 @@ ALTER TABLE subject_claim_score
   MODIFY COLUMN display_order TINYINT NOT NULL;
 
 -- TODO after Feature completion:
--- add constraints to subject table
--- drop item.claim_id, item.target_id columns
--- drop unused columns from exam_claim_score table, add constraints
 -- drop descriptions from tables, display text should come from translation table
--- drop claim, target tables
