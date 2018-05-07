@@ -54,6 +54,9 @@ CREATE TABLE subject_asmt_type (
   CONSTRAINT fk__subject_asmt_type__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
 );
 
+ALTER TABLE subject_claim_score
+  ADD COLUMN display_order TINYINT;
+
 -- Create exam_target_score table for holding category target scores.
 CREATE TABLE exam_target_score (
   id BIGINT NOT NULL PRIMARY KEY,
@@ -83,6 +86,52 @@ INSERT INTO subject_asmt_type (asmt_type_id, subject_id, performance_level_count
   (1, 2, 4, 3, 3, null),
   (2, 2, 3, null, null, null),
   (3, 2, 4, 3, 3, null);
+
+UPDATE subject_claim_score
+SET display_order = 1
+WHERE
+  code = '1' AND
+  subject_id = 1;
+
+UPDATE subject_claim_score
+SET display_order = 2
+WHERE
+  code = 'SOCK_2' AND
+  subject_id = 1;
+
+UPDATE subject_claim_score
+SET display_order = 3
+WHERE
+  code = '3' AND
+  subject_id = 1;
+
+UPDATE subject_claim_score
+SET display_order = 1
+WHERE
+  code = 'SOCK_R' AND
+  subject_id = 2;
+
+UPDATE subject_claim_score
+SET display_order = 2
+WHERE
+  code = 'SOCK_LS' AND
+  subject_id = 2;
+
+UPDATE subject_claim_score
+SET display_order = 3
+WHERE
+  code = '2-W' AND
+  subject_id = 2;
+
+UPDATE subject_claim_score
+SET display_order = 4
+WHERE
+  code = '4-CR' AND
+  subject_id = 2;
+
+-- Apply constraints now that data is loaded
+ALTER TABLE subject_claim_score
+  MODIFY COLUMN display_order TINYINT NOT NULL;
 
 -- TODO after Feature completion:
 -- add constraints to subject table
