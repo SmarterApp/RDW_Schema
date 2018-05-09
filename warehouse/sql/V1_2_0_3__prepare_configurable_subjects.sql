@@ -58,26 +58,6 @@ CREATE TABLE subject_asmt_type (
 ALTER TABLE subject_claim_score
   ADD COLUMN display_order TINYINT;
 
--- Create exam_target_score table for holding category target scores.
-CREATE TABLE exam_target_score (
-  id BIGINT NOT NULL PRIMARY KEY,
-  exam_id BIGINT NOT NULL,
-  target_id SMALLINT NOT NULL,
-  scale_score FLOAT,
-  scale_score_std_err FLOAT,
-  category TINYINT,
-  theta_score FLOAT,
-  theta_score_std_err FLOAT,
-  residual_overall_score FLOAT,
-  residual_overall_score_std_err FLOAT,
-  residual_standard_met_score FLOAT,
-  residual_standard_met_score_std_err FLOAT,
-  created timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-  CONSTRAINT fk__exam_target_score__exam FOREIGN KEY (exam_id) REFERENCES exam(id),
-  CONSTRAINT fk__exam_target_score__target FOREIGN KEY (target_id) REFERENCES target(id)
-);
-
-
 -- Insert data for Math: 1, ELA: 2
 -- ICA: 1, IAB: 2, SUM: 3
 INSERT INTO subject_asmt_type (asmt_type_id, subject_id, performance_level_count, performance_level_standard_cutoff, sub_score_performance_level_count, sub_score_performance_level_standard_cutoff) VALUES
