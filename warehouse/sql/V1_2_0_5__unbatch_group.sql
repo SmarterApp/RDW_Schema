@@ -26,3 +26,6 @@ DROP TABLE upload_student_group_import;
 DROP TABLE upload_student_group_import_ref_type;
 DROP TABLE upload_student_group_batch_progress;
 DROP TABLE upload_student_group_batch;
+
+ALTER TABLE import
+  ADD INDEX idx__import__content_creator_contentType (creator, content, contentType);
