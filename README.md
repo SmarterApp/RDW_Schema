@@ -111,10 +111,8 @@ tasks can be specified but it requires a lot of settings dealing with two separa
 Bob, assume they have created `bob_migrate_olap_test` schema in the dev instance of Aurora:
 ```bash
 RDW_Schema$ gradle -Pschema_prefix=bob_ \
-    -Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/ci \
-    -Predshift_user=bob -Predshift_password=bob_redshift_password \
-    -Pdatabase_url=jdbc:mysql://rdw-aurora-ci.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306 \
-    -Pdatabase_user=bob -Pdatabase_password=bob_aurora_password \
+    -Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/ci -Predshift_user=bob -Predshift_password=bob_redshift_password \
+    -Pdatabase_url=jdbc:mysql://rdw-aurora-ci.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306 -Pdatabase_user=bob -Pdatabase_password=bob_aurora_password \
     cleanReporting_olap_test cleanMigrate_olap_test migrateReporting_olap_test migrateMigrate_olap_test    
 ```
 
@@ -122,25 +120,20 @@ RDW_Schema$ gradle -Pschema_prefix=bob_ \
 For CI, only the test schemas exist (with no schema prefix):
 ```bash
 gradle \
--Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/ci \
--Predshift_user=ci -Predshift_password= \
--Pdatabase_url=jdbc:mysql://rdw-aurora-ci.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306 \
--Pdatabase_user=sbac -Pdatabase_password= \
+-Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/ci -Predshift_user=ci -Predshift_password= \
+-Pdatabase_url=jdbc:mysql://rdw-aurora-ci.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306 -Pdatabase_user=sbac -Pdatabase_password= \
 cleanAll_test migrateAll_test
 ```
 
 For the `awsqa` instance there are two Aurora databases and we should never be cleaning the data:
 ```bash
 gradle \
--Pdatabase_url=jdbc:mysql://rdw-aurora-qa-warehouse.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/ \
--Pdatabase_user=sbac -Pdatabase_password= \
--Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/qa \
--Predshift_user=awsqa -Predshift_password= \
+-Pdatabase_url=jdbc:mysql://rdw-aurora-qa-warehouse.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/ -Pdatabase_user=sbac -Pdatabase_password= \
+-Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/qa -Predshift_user=awsqa -Predshift_password= \
 migrateWarehouse migrateMigrate_olap migrateReporting_olap
 
 gradle \
--Pdatabase_url=jdbc:mysql://rdw-aurora-qa-reporting.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/ \
--Pdatabase_user=sbac -Pdatabase_password= \
+-Pdatabase_url=jdbc:mysql://rdw-aurora-qa-reporting.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/ -Pdatabase_user=sbac -Pdatabase_password= \
 migrateReporting
 ```
 
