@@ -58,6 +58,38 @@ CREATE TABLE subject_asmt_type (
 ALTER TABLE subject_claim_score
   ADD COLUMN display_order TINYINT;
 
+-- Make name and description nullable for organizational claims
+-- Name and description will come from subject_translation
+ALTER TABLE claim
+  MODIFY COLUMN name VARCHAR(250) DEFAULT NULL,
+  MODIFY COLUMN description VARCHAR(250) DEFAULT NULL;
+
+-- Make code and description nullable for targets
+-- Code (display name) and Description will come from subject_translation
+ALTER TABLE target
+  MODIFY COLUMN code VARCHAR(10) DEFAULT NULL,
+  MODIFY COLUMN description VARCHAR(500) DEFAULT NULL;
+
+-- Drop foreign keys to allow for modifying the depth_of_knowledge id column
+ALTER TABLE item DROP FOREIGN KEY fk__item__dok;
+
+-- Make description nullable for depths of knowledge
+-- and alter primary key column to auto-increment
+ALTER TABLE depth_of_knowledge
+  MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL,
+  MODIFY COLUMN description VARCHAR(100) DEFAULT NULL;
+
+-- Replace foreign keys on depth_of_knowledge id column
+ALTER TABLE item ADD CONSTRAINT fk__item__dok FOREIGN KEY (dok_id) REFERENCES depth_of_knowledge(id);
+
+-- Modify difficulty cut points to remove reference to assessment type
+-- Per Matt they should be the same cut points per subject for all assessment types
+DELETE FROM item_difficulty_cuts WHERE asmt_type_id != 1;
+ALTER TABLE item_difficulty_cuts
+  DROP FOREIGN KEY fk__item_difficulty_cuts__asmt_type,
+  DROP COLUMN asmt_type_id,
+  MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL;
+
 -- Insert data for Math: 1, ELA: 2
 -- ICA: 1, IAB: 2, SUM: 3
 INSERT INTO subject_asmt_type (asmt_type_id, subject_id, performance_level_count, performance_level_standard_cutoff, sub_score_performance_level_count, sub_score_performance_level_standard_cutoff) VALUES
@@ -115,4 +147,6 @@ ALTER TABLE subject_claim_score
   MODIFY COLUMN display_order TINYINT NOT NULL;
 
 -- TODO after Feature completion:
--- drop descriptions from tables, display text should come from translation table
+-- drop names, descriptions from tables, display text should come from translation table
+-- drop target.code (display-name) in favor of target.natural_id
+-- rebind reporting item migration from item.target_code to item.target_natural_id
