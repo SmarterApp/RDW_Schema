@@ -90,6 +90,26 @@ ALTER TABLE item_difficulty_cuts
   DROP COLUMN asmt_type_id,
   MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL;
 
+-- Make name nullable for subject_claim_score
+-- and make primary id column auto-incrementing
+-- Remove asmt_type_id column since scorable claims are bound to a subject
+-- rather than a subject-assessment-type pair.
+UPDATE exam_claim_score ecs
+  JOIN subject_claim_score orig_scs ON orig_scs.id = ecs.subject_claim_score_id
+  JOIN subject_claim_score new_scs ON new_scs.asmt_type_id = 1
+    AND new_scs.subject_id = orig_scs.subject_id
+    AND new_scs.code = orig_scs.code
+SET ecs.subject_claim_score_id = new_scs.id
+WHERE new_scs.id != orig_scs.id;
+
+DELETE FROM subject_claim_score WHERE asmt_type_id != 1;
+
+ALTER TABLE subject_claim_score
+  MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL,
+  MODIFY COLUMN name VARCHAR(250) DEFAULT NULL,
+  DROP FOREIGN KEY fk__subject_claim_score__asmt_type,
+  DROP COLUMN asmt_type_id;
+
 -- Insert data for Math: 1, ELA: 2
 -- ICA: 1, IAB: 2, SUM: 3
 INSERT INTO subject_asmt_type (asmt_type_id, subject_id, performance_level_count, performance_level_standard_cutoff, sub_score_performance_level_count, sub_score_performance_level_standard_cutoff) VALUES
