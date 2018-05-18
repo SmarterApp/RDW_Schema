@@ -1,6 +1,5 @@
 -- Prepare for configurable subjects by creating the tables required to ingest and store
 -- subject xml payloads.
--- Question: auditing?  What's required?
 
 USE ${schemaName};
 
@@ -54,10 +53,6 @@ CREATE TABLE subject_asmt_type (
   CONSTRAINT fk__subject_asmt_type__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
 );
 
--- Add display_order information to scorable claims.
-ALTER TABLE subject_claim_score
-  ADD COLUMN display_order TINYINT;
-
 -- Make name and description nullable for organizational claims
 -- Name and description will come from subject_translation
 ALTER TABLE claim
@@ -92,6 +87,7 @@ ALTER TABLE item_difficulty_cuts
 
 -- Make name nullable for subject_claim_score
 -- and make primary id column auto-incrementing
+-- and add display_order column
 -- Remove asmt_type_id column since scorable claims are bound to a subject
 -- rather than a subject-assessment-type pair.
 UPDATE exam_claim_score ecs
@@ -107,6 +103,7 @@ DELETE FROM subject_claim_score WHERE asmt_type_id != 1;
 ALTER TABLE subject_claim_score
   MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL,
   MODIFY COLUMN name VARCHAR(250) DEFAULT NULL,
+  ADD COLUMN display_order TINYINT,
   DROP FOREIGN KEY fk__subject_claim_score__asmt_type,
   DROP COLUMN asmt_type_id;
 
