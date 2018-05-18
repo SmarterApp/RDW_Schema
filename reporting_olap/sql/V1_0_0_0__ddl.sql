@@ -290,14 +290,14 @@ CREATE TABLE asmt (
 
 CREATE TABLE target (
   id smallint NOT NULL PRIMARY KEY SORTKEY,
-  code varchar(10) NOT NULL,
+  natural_id varchar(20) NOT NULL,
   claim_code varchar(10) NOT NULL
 ) DISTSTYLE ALL;
 
 CREATE TABLE asmt_target (
   target_id int encode raw NOT NULL,
   asmt_id int encode raw NOT NULL,
-  include_into_report boolean NOT NULL,
+  include_in_report boolean NOT NULL,
   CONSTRAINT fk__asmt_target__target FOREIGN KEY(target_id) REFERENCES target(id),
   CONSTRAINT fk__asmt_target__asmt FOREIGN KEY(asmt_id) REFERENCES asmt(id)
 ) DISTSTYLE ALL;
