@@ -110,6 +110,10 @@ ALTER TABLE subject_claim_score
   DROP FOREIGN KEY fk__subject_claim_score__asmt_type,
   DROP COLUMN asmt_type_id;
 
+-- Make description nullable for common_core_standard
+ALTER TABLE common_core_standard
+  MODIFY COLUMN description VARCHAR(1000) DEFAULT NULL;
+
 -- Insert data for Math: 1, ELA: 2
 -- ICA: 1, IAB: 2, SUM: 3
 INSERT INTO subject_asmt_type (asmt_type_id, subject_id, performance_level_count, performance_level_standard_cutoff, sub_score_performance_level_count, sub_score_performance_level_standard_cutoff) VALUES
