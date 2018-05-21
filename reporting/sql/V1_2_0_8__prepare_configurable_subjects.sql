@@ -11,8 +11,8 @@ CREATE TABLE subject_asmt_type (
   performance_level_standard_cutoff TINYINT,
   sub_score_performance_level_count TINYINT,
   sub_score_performance_level_standard_cutoff TINYINT,
-  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY(asmt_type_id, subject_id),
+  INDEX idx__subject_asmt_type__subject (subject_id),
   CONSTRAINT fk__subject_asmt_type__asmt_type FOREIGN KEY (asmt_type_id) REFERENCES asmt_type(id),
   CONSTRAINT fk__subject_asmt_type__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
 );
@@ -27,14 +27,20 @@ INSERT INTO subject_asmt_type (asmt_type_id, subject_id, performance_level_count
   (2, 2, 3, null, null, null),
   (3, 2, 4, 3, 3, null);
 
--- Remove subject_claim_score asmt_type_id column
--- add display_order column
--- make display string columns nullable
+-- Re-bind exam_claim_score_mapping records to de-duped subject_claim_score
+-- records when we remove subject_claim_score.asmt_type_id
 DELETE escm FROM exam_claim_score_mapping escm
   JOIN subject_claim_score scs ON scs.id = escm.subject_claim_score_id
 WHERE scs.asmt_type_id != 1;
 
+-- Remove future duplicate subject_claim_score records when we remove
+-- the asmt_type_id column.
 DELETE FROM subject_claim_score WHERE asmt_type_id != 1;
+
+-- Make name nullable for subject_claim_score
+-- and add display_order column
+-- Remove asmt_type_id column since scorable claims are bound to a subject
+-- rather than a subject-assessment-type pair.
 ALTER TABLE subject_claim_score
   DROP FOREIGN KEY fk__subject_claim_score__asmt_type,
   DROP COLUMN asmt_type_id,

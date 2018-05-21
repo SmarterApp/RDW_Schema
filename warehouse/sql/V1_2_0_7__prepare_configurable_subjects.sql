@@ -47,8 +47,8 @@ CREATE TABLE subject_asmt_type (
   performance_level_standard_cutoff TINYINT,
   sub_score_performance_level_count TINYINT,
   sub_score_performance_level_standard_cutoff TINYINT,
-  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY(asmt_type_id, subject_id),
+  INDEX idx__subject_asmt_type__subject (subject_id),
   CONSTRAINT fk__subject_asmt_type__asmt_type FOREIGN KEY (asmt_type_id) REFERENCES asmt_type(id),
   CONSTRAINT fk__subject_asmt_type__subject FOREIGN KEY (subject_id) REFERENCES subject(id)
 );
@@ -85,11 +85,8 @@ ALTER TABLE item_difficulty_cuts
   DROP COLUMN asmt_type_id,
   MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL;
 
--- Make name nullable for subject_claim_score
--- and make primary id column auto-incrementing
--- and add display_order column
--- Remove asmt_type_id column since scorable claims are bound to a subject
--- rather than a subject-assessment-type pair.
+-- Re-bind exam_claim_score records to de-duped subject_claim_score
+-- records when we remove subject_claim_score.asmt_type_id
 UPDATE exam_claim_score ecs
   JOIN subject_claim_score orig_scs ON orig_scs.id = ecs.subject_claim_score_id
   JOIN subject_claim_score new_scs ON new_scs.asmt_type_id = 1
@@ -98,8 +95,15 @@ UPDATE exam_claim_score ecs
 SET ecs.subject_claim_score_id = new_scs.id
 WHERE new_scs.id != orig_scs.id;
 
+-- Remove future duplicate subject_claim_score records when we remove
+-- the asmt_type_id column.
 DELETE FROM subject_claim_score WHERE asmt_type_id != 1;
 
+-- Make name nullable for subject_claim_score
+-- and make primary id column auto-incrementing
+-- and add display_order column
+-- Remove asmt_type_id column since scorable claims are bound to a subject
+-- rather than a subject-assessment-type pair.
 ALTER TABLE subject_claim_score
   MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL,
   MODIFY COLUMN name VARCHAR(250) DEFAULT NULL,
