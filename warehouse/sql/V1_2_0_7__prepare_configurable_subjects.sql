@@ -87,6 +87,9 @@ ALTER TABLE item_difficulty_cuts
 
 -- Re-bind exam_claim_score records to de-duped subject_claim_score
 -- records when we remove subject_claim_score.asmt_type_id
+-- TODO: remove the below UPDATE statement from the production release since
+-- it is applicable to Summative assessments only and we do not have Summative
+-- exams in production
 UPDATE exam_claim_score ecs
   JOIN subject_claim_score orig_scs ON orig_scs.id = ecs.subject_claim_score_id
   JOIN subject_claim_score new_scs ON new_scs.asmt_type_id = 1

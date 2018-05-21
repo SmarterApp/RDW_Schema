@@ -1,5 +1,7 @@
--- Prepare for configurable subjects by modifying the tables that have been modified
--- in the warehouse due to configurable subject ingest.
+-- Prepare for configurable subjects:
+-- Introduce a subject_asmt_type table to hold subject/assessment-type definitions
+-- Re-bind subject_claim_score values from subject/assessment-type to just subject
+-- Use subject/ICA subject_claim_score values as the subject-scoped subject_claim_score values
 
 USE ${schemaName};
 
