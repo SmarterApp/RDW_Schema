@@ -13,6 +13,7 @@ ALTER TABLE student_group DROP FOREIGN KEY fk__student_group__subject;
 ALTER TABLE subject_claim_score DROP FOREIGN KEY fk__subject_claim_score__subject;
 
 -- Modify subject table to act as import/migration root
+-- TODO make import_id, update_import_id non-null during migration implementation
 ALTER TABLE subject
   MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL,
   ADD COLUMN created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -45,8 +46,7 @@ CREATE TABLE subject_asmt_type (
   subject_id TINYINT NOT NULL,
   performance_level_count TINYINT NOT NULL,
   performance_level_standard_cutoff TINYINT,
-  sub_score_performance_level_count TINYINT,
-  sub_score_performance_level_standard_cutoff TINYINT,
+  claim_score_performance_level_count TINYINT,
   PRIMARY KEY(asmt_type_id, subject_id),
   INDEX idx__subject_asmt_type__subject (subject_id),
   CONSTRAINT fk__subject_asmt_type__asmt_type FOREIGN KEY (asmt_type_id) REFERENCES asmt_type(id),
@@ -85,34 +85,13 @@ ALTER TABLE item_difficulty_cuts
   DROP COLUMN asmt_type_id,
   MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL;
 
--- Re-bind exam_claim_score records to de-duped subject_claim_score
--- records when we remove subject_claim_score.asmt_type_id
--- TODO: remove the below UPDATE statement from the production release since
--- it is applicable to Summative assessments only and we do not have Summative
--- exams in production
-UPDATE exam_claim_score ecs
-  JOIN subject_claim_score orig_scs ON orig_scs.id = ecs.subject_claim_score_id
-  JOIN subject_claim_score new_scs ON new_scs.asmt_type_id = 1
-    AND new_scs.subject_id = orig_scs.subject_id
-    AND new_scs.code = orig_scs.code
-SET ecs.subject_claim_score_id = new_scs.id
-WHERE new_scs.id != orig_scs.id;
-
--- Remove future duplicate subject_claim_score records when we remove
--- the asmt_type_id column.
-DELETE FROM subject_claim_score WHERE asmt_type_id != 1;
-
 -- Make name nullable for subject_claim_score
 -- and make primary id column auto-incrementing
 -- and add display_order column
--- Remove asmt_type_id column since scorable claims are bound to a subject
--- rather than a subject-assessment-type pair.
 ALTER TABLE subject_claim_score
   MODIFY COLUMN id TINYINT AUTO_INCREMENT NOT NULL,
   MODIFY COLUMN name VARCHAR(250) DEFAULT NULL,
-  ADD COLUMN display_order TINYINT,
-  DROP FOREIGN KEY fk__subject_claim_score__asmt_type,
-  DROP COLUMN asmt_type_id;
+  ADD COLUMN display_order TINYINT;
 
 -- Make description nullable for common_core_standard
 ALTER TABLE common_core_standard
@@ -120,13 +99,13 @@ ALTER TABLE common_core_standard
 
 -- Insert data for Math: 1, ELA: 2
 -- ICA: 1, IAB: 2, SUM: 3
-INSERT INTO subject_asmt_type (asmt_type_id, subject_id, performance_level_count, performance_level_standard_cutoff, sub_score_performance_level_count, sub_score_performance_level_standard_cutoff) VALUES
-  (1, 1, 4, 3, 3, null),
-  (2, 1, 3, null, null, null),
-  (3, 1, 4, 3, 3, null),
-  (1, 2, 4, 3, 3, null),
-  (2, 2, 3, null, null, null),
-  (3, 2, 4, 3, 3, null);
+INSERT INTO subject_asmt_type (asmt_type_id, subject_id, performance_level_count, performance_level_standard_cutoff, claim_score_performance_level_count) VALUES
+  (1, 1, 4, 3, 3),
+  (2, 1, 3, null, null),
+  (3, 1, 4, 3, 3),
+  (1, 2, 4, 3, 3),
+  (2, 2, 3, null, null),
+  (3, 2, 4, 3, 3);
 
 UPDATE subject_claim_score
 SET display_order = 1
