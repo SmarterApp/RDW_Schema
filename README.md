@@ -208,3 +208,8 @@ tweaking the flyway table. They add the following row(s) to the flyway table:
 INSERT INTO schema_version VALUES
   (6,'1.1.1.0','student upsert','SQL','V1_1_1_0__student_upsert.sql',-223870699,'root','2018-03-11 15:58:28',1,1);
 ```
+
+#### v1.2
+
+Blah, blah.
+Please remember to add `DELETE FROM upload_student_group` when consolidating the scripts.
