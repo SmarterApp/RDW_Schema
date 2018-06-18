@@ -233,5 +233,5 @@ SELECT * FROM schema_version;
 -- if things look good, reset entries to match condensed scripts:
 DELETE FROM schema_version WHERE installed_rank > 4;
 INSERT INTO schema_version VALUES
-  (4, '1.2.0.0', 'update', 'SQL', 'V1_2_0_0__update.sql', 2099798335, 'root', '2018-06-18 12:00:00', 10000, 1);
+  (4, '1.2.0.0', 'update', 'SQL', 'V1_2_0_0__update.sql', 1999355730, 'root', '2018-06-18 12:00:00', 10000, 1);
 ```

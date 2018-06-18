@@ -70,8 +70,8 @@ ALTER TABLE exam
   -- new index for the dashboard query
   ADD INDEX idx__exam__student_type_school_year_scores (student_id, school_year, type_id, scale_score, scale_score_std_err, performance_level),
   -- replace foreign key index with the new one
-  ADD CONSTRAINT fk__exam__student FOREIGN KEY (student_id) REFERENCES student(id),
-  ADD INDEX idx__exam__student_school_completed_at (student_id, school_id, completed_at);
+  ADD INDEX idx__exam__student_school_completed_at (student_id, school_id, completed_at),
+  ADD CONSTRAINT fk__exam__student FOREIGN KEY (student_id) REFERENCES student(id);
 
 ALTER TABLE staging_exam
   ADD COLUMN elas_id TINYINT NULL,
