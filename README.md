@@ -211,5 +211,27 @@ INSERT INTO schema_version VALUES
 
 #### v1.2
 
-Blah, blah.
-Please remember to add `DELETE FROM upload_student_group` when consolidating the scripts.
+The V1_2_0 release scripts are condensed from the incremental scripts created during the development
+of release v1.2. As noted above, a db instance may be reset so the flyway table represents as if
+this script had been used instead of incremental updates.
+```sql
+USE warehouse;
+-- query schema_version and make sure the applied scripts match the list of pre-condensed scripts
+-- as noted in the condensed script, the sixth entry should be V1_1_1_0__student_upsert.sql and the
+-- last entry should be for V1_2_0_18__student_group_index:
+SELECT * FROM schema_version;
+-- if things look good, reset entries to match condensed scripts:
+DELETE FROM schema_version WHERE installed_rank > 6;
+INSERT INTO schema_version VALUES
+  (7, '1.2.0.0', 'update', 'SQL', 'V1_2_0_0__update.sql', -680448587, 'root', '2018-06-18 12:00:00', 10000, 1);
+
+USE reporting;
+-- query schema_version and make sure the applied scripts match the list of pre-condensed scripts
+-- as noted in the condensed script, the fourth entry should be V1_1_0_0__update.sql and the last
+-- entry should be for V1_2_0_13__optional_data.sql
+SELECT * FROM schema_version;
+-- if things look good, reset entries to match condensed scripts:
+DELETE FROM schema_version WHERE installed_rank > 4;
+INSERT INTO schema_version VALUES
+  (4, '1.2.0.0', 'update', 'SQL', 'V1_2_0_0__update.sql', 2099798335, 'root', '2018-06-18 12:00:00', 10000, 1);
+```
