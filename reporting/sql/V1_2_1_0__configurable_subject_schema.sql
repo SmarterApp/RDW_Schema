@@ -4,7 +4,6 @@
 -- Make display text columns nullable in preparation for removal
 -- Create a subject_translation table to hold subject-scoped display text
 -- Change subject.id, depth_of_knowledge.id, subject_claim_score.id from TINYINT to SMALLINT
--- Create a staging_exam_claim_score_mapping table to support migration
 -- Create a staging_subject_claim_score to support migration
 
 USE ${schemaName};
@@ -149,11 +148,6 @@ INSERT INTO subject_asmt_type (asmt_type_id, subject_id, performance_level_count
 ALTER TABLE exam_claim_score_mapping
   DROP FOREIGN KEY fk__exam_claim_score_mapping__subject_claim_score,
   MODIFY COLUMN subject_claim_score_id SMALLINT NOT NULL;
-CREATE TABLE staging_exam_claim_score_mapping (
-  subject_claim_score_id SMALLINT NOT NULL,
-  num TINYINT NOT NULL,
-  PRIMARY KEY (subject_claim_score_id)
-);
 ALTER TABLE subject_claim_score
   ADD COLUMN display_order TINYINT,
   MODIFY COLUMN id SMALLINT NOT NULL,
