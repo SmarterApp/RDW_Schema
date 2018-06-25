@@ -2,10 +2,11 @@ SELECT
     count(*),
     e.asmt_id,
     e.school_year,
-    ac.code,
-    CASE WHEN e.completeness_id = 2 THEN 'TRUE' ELSE 'FALSE' END
+  ac.code AS administration_condition_code,
+  c.code AS completeness_code
   FROM exam e
-    JOIN administration_condition ac ON e.administration_condition_id = ac.id
+    LEFT JOIN administration_condition ac ON e.administration_condition_id = ac.id
+    LEFT JOIN completeness c ON e.completeness_id = c.id
   WHERE e.type_id = 1
     AND e.deleted = 0
   GROUP BY
@@ -18,4 +19,4 @@ SELECT
     e.asmt_id,
     e.school_year,
     ac.code,
-    e.completeness_id;
+    c.code;
