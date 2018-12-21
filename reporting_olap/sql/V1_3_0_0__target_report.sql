@@ -1,3 +1,5 @@
+-- Add target_report flag to subject assessment type
+
 SET SEARCH_PATH to ${schemaName};
 SET client_encoding = 'UTF8';
 
