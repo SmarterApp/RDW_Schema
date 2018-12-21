@@ -52,7 +52,6 @@ CREATE TABLE staging_subject_asmt_type (
   performance_level_count smallint NOT NULL,
   performance_level_standard_cutoff smallint,
   claim_score_performance_level_count smallint,
-  target_report boolean NOT NULL,
   migrate_id bigint NOT NULL
 );
 
@@ -224,7 +223,7 @@ CREATE TABLE staging_school_year (
 
 -- configuration
 CREATE TABLE school_year (
-  year smallint NOT NULL PRIMARY KEY SORTKEY 
+  year smallint NOT NULL PRIMARY KEY SORTKEY
 ) DISTSTYLE ALL;
 
 -- dimensions
@@ -274,7 +273,6 @@ CREATE TABLE subject_asmt_type (
   performance_level_count smallint NOT NULL,
   performance_level_standard_cutoff smallint,
   claim_score_performance_level_count smallint,
-  target_report boolean NOT NULL,
   UNIQUE (asmt_type_id, subject_id),
   CONSTRAINT fk__subject_asmt_type__type FOREIGN KEY(asmt_type_id) REFERENCES asmt_type(id),
   CONSTRAINT fk__subject_asmt_type__subject FOREIGN KEY(subject_id) REFERENCES subject(id)
