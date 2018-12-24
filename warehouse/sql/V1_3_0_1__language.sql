@@ -505,28 +505,61 @@ INSERT INTO language (id, code, altcode, name) VALUES
   (490, 'zxx', NULL, 'No linguistic content; Not applicable'),
   (491, 'zza', NULL, 'Zaza; Dimili; Dimli; Kirdki; Kirmanjki; Zazaki');
 
--- disable auditing
+
+-- To update the exam table, we're going to do two things:
+-- 1. Drop the audit triggers (which we need to change anyway).
+-- 2. Partition the updates to avoid blowing memory.
+
+-- create helper
+DROP PROCEDURE IF EXISTS loop_by_exam_id;
+DELIMITER //
+CREATE PROCEDURE loop_by_exam_id(IN p_sql VARCHAR(1000))
+BEGIN
+  DECLARE batch, iter INTEGER;
+  SET batch = 500000;
+  SET iter = 0;
+
+  SELECT 1 + FLOOR(MAX(id) / batch) INTO @max_iter FROM exam;
+
+  partition_loop: LOOP
+    SET @stmt = CONCAT(p_sql, ' AND e.id >= ', iter * batch, ' AND e.id < ', (iter + 1) * batch);
+    PREPARE stmt FROM @stmt;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+    SELECT CONCAT('executed partition:', iter);
+
+    SET iter = iter + 1;
+    IF iter < @max_iter THEN
+      ITERATE partition_loop;
+    END IF;
+    LEAVE partition_loop;
+  END LOOP partition_loop;
+END;
+//
+DELIMITER ;
+
+-- drop exam audit triggers and disable auditing (just in case)
+DROP TRIGGER trg__exam__update;
+DROP TRIGGER trg__exam__delete;
 SELECT value INTO @audit_setting FROM setting WHERE name = 'AUDIT_TRIGGER_ENABLE';
 UPDATE setting SET value = 'FALSE' WHERE name = 'AUDIT_TRIGGER_ENABLE' AND value != 'FALSE';
 
-ALTER TABLE exam
-  ADD COLUMN language_id smallint;
+-- do the work
+ALTER TABLE exam ADD COLUMN language_id smallint;
+CALL loop_by_exam_id('UPDATE exam e JOIN language l ON LOWER(e.language_code) = l.code SET e.language_id = l.id WHERE e.language_id IS NULL');
+CALL loop_by_exam_id('UPDATE exam e JOIN language l ON l.altcode IS NOT NULL AND e.language_code = l.altcode SET e.language_id = l.id WHERE e.language_id IS NULL');
 
-UPDATE exam e JOIN language l ON LOWER(e.language_code) = l.code
-  SET e.language_id = l.id WHERE e.language_id IS NULL;
-UPDATE exam e JOIN language l ON l.altcode IS NOT NULL AND e.language_code = l.altcode
-  SET e.language_id = l.id WHERE e.language_id IS NULL;
+ALTER TABLE audit_exam ADD COLUMN language_id smallint;
+UPDATE audit_exam e JOIN language l ON LOWER(e.language_code) = l.code SET e.language_id = l.id WHERE e.language_id IS NULL;
+UPDATE audit_exam e JOIN language l ON l.altcode IS NOT NULL AND e.language_code = l.altcode SET e.language_id = l.id WHERE e.language_id IS NULL;
 
-ALTER TABLE audit_exam
-  ADD COLUMN language_id smallint;
+ALTER TABLE exam DROP COLUMN language_code;
+ALTER TABLE audit_exam DROP COLUMN language_code;
 
-UPDATE audit_exam e JOIN language l ON LOWER(e.language_code) = l.code
-SET e.language_id = l.id WHERE e.language_id IS NULL;
-UPDATE audit_exam e JOIN language l ON l.altcode IS NOT NULL AND e.language_code = l.altcode
-SET e.language_id = l.id WHERE e.language_id IS NULL;
+-- drop helper
+DROP PROCEDURE loop_by_exam_id;
 
-
-DROP TRIGGER trg__exam__update;
+-- recreate triggers (with language_id change)
 CREATE TRIGGER trg__exam__update
   BEFORE UPDATE ON exam
   FOR EACH ROW
@@ -557,7 +590,6 @@ CREATE TRIGGER trg__exam__update
   FROM setting s
   WHERE s.name = 'AUDIT_TRIGGER_ENABLE' AND s.value = 'TRUE';
 
-DROP TRIGGER trg__exam__delete;
 CREATE TRIGGER trg__exam__delete
   BEFORE DELETE ON exam
   FOR EACH ROW
@@ -587,14 +619,6 @@ CREATE TRIGGER trg__exam__delete
          OLD.theta_score, OLD.theta_score_std_err
   FROM setting s
   WHERE s.name = 'AUDIT_TRIGGER_ENABLE' AND s.value = 'TRUE';
-
-
-ALTER TABLE exam
-  DROP COLUMN language_code;
-
-ALTER TABLE audit_exam
-  DROP COLUMN language_code;
-
 
 -- reset auditing
 UPDATE setting SET value = @audit_setting WHERE name = 'AUDIT_TRIGGER_ENABLE' AND value != @audit_setting;
