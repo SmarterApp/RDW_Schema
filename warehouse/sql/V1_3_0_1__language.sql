@@ -546,8 +546,8 @@ UPDATE setting SET value = 'FALSE' WHERE name = 'AUDIT_TRIGGER_ENABLE' AND value
 
 -- do the work
 ALTER TABLE exam ADD COLUMN language_id smallint;
-CALL loop_by_exam_id('UPDATE exam e JOIN language l ON LOWER(e.language_code) = l.code SET e.language_id = l.id WHERE e.language_id IS NULL');
-CALL loop_by_exam_id('UPDATE exam e JOIN language l ON l.altcode IS NOT NULL AND e.language_code = l.altcode SET e.language_id = l.id WHERE e.language_id IS NULL');
+CALL loop_by_exam_id('UPDATE exam e JOIN language l ON LOWER(e.language_code) = l.code SET e.language_id = l.id, e.updated = e.updated WHERE e.language_code IS NOT NULL AND e.language_id IS NULL');
+CALL loop_by_exam_id('UPDATE exam e JOIN language l ON l.altcode IS NOT NULL AND e.language_code = l.altcode SET e.language_id = l.id, e.updated = e.updated WHERE e.language_code IS NOT NULL AND e.language_id IS NULL');
 
 ALTER TABLE audit_exam ADD COLUMN language_id smallint;
 UPDATE audit_exam e JOIN language l ON LOWER(e.language_code) = l.code SET e.language_id = l.id WHERE e.language_id IS NULL;
