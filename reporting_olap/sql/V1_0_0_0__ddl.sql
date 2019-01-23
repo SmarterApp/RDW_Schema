@@ -43,6 +43,11 @@ CREATE TABLE staging_language (
   code varchar(8) NOT NULL UNIQUE
 );
 
+CREATE TABLE staging_military_connected (
+  id smallint NOT NULL PRIMARY KEY,
+  code varchar(30) NOT NULL UNIQUE
+);
+
 CREATE TABLE staging_subject (
   id smallint NOT NULL PRIMARY KEY,
   code varchar(10) NOT NULL,
@@ -195,6 +200,7 @@ CREATE TABLE staging_exam (
   asmt_id int NOT NULL,
   completeness_id smallint,
   administration_condition_id smallint,
+  military_connected_id smallint,
   scale_score float NOT NULL,
   performance_level smallint NOT NULL,
   deleted boolean NOT NULL,
@@ -264,6 +270,11 @@ CREATE TABLE completeness (
 CREATE TABLE administration_condition (
   id smallint NOT NULL PRIMARY KEY SORTKEY,
   code varchar(20) NOT NULL UNIQUE
+) DISTSTYLE ALL;
+
+CREATE TABLE military_connected (
+  id smallint NOT NULL PRIMARY KEY SORTKEY,
+  code varchar(30) NOT NULL UNIQUE
 ) DISTSTYLE ALL;
 
 CREATE TABLE subject (
@@ -439,6 +450,7 @@ CREATE TABLE exam (
   migrant_status smallint encode lzo NOT NULL,
   completeness_id smallint encode lzo,
   administration_condition_id smallint encode lzo,
+  military_connected_id smallint encode lzo,
   scale_score float encode bytedict NOT NULL,
   performance_level smallint encode lzo NOT NULL,
   completed_at timestamptz encode lzo NOT NULL,
@@ -455,7 +467,8 @@ CREATE TABLE exam (
   CONSTRAINT fk__exam__elas FOREIGN KEY(elas_id) REFERENCES elas(id),
   CONSTRAINT fk__exam__language FOREIGN KEY(language_id) REFERENCES language(id),
   CONSTRAINT fk__exam__completeness FOREIGN KEY(completeness_id) REFERENCES completeness(id),
-  CONSTRAINT fk__exam__administration_comdition FOREIGN KEY(administration_condition_id) REFERENCES administration_condition(id),
+  CONSTRAINT fk__exam__administration_condition FOREIGN KEY(administration_condition_id) REFERENCES administration_condition(id),
+  CONSTRAINT fk__exam__military_connected FOREIGN KEY(military_connected_id) REFERENCES military_connected(id),
   CONSTRAINT fk__exam__section504 FOREIGN KEY(section504) REFERENCES boolean(id),
   CONSTRAINT fk__exam__economic_disadvantage FOREIGN KEY(economic_disadvantage) REFERENCES strict_boolean(id),
   CONSTRAINT fk__exam__migrant_status FOREIGN KEY(migrant_status) REFERENCES boolean(id)
@@ -478,6 +491,7 @@ CREATE TABLE iab_exam (
   migrant_status smallint encode lzo NOT NULL,
   completeness_id smallint encode lzo,
   administration_condition_id smallint encode lzo,
+  military_connected_id smallint encode lzo,
   scale_score float encode bytedict NOT NULL,
   performance_level smallint encode lzo NOT NULL,
   completed_at timestamptz encode lzo NOT NULL,
@@ -494,7 +508,8 @@ CREATE TABLE iab_exam (
   CONSTRAINT fk__iab_exam__elas FOREIGN KEY(elas_id) REFERENCES elas(id),
   CONSTRAINT fk__iab_exam__language FOREIGN KEY(language_id) REFERENCES language(id),
   CONSTRAINT fk__iab_exam__completeness FOREIGN KEY(completeness_id) REFERENCES completeness(id),
-  CONSTRAINT fk__iab_exam__administration_comdition FOREIGN KEY(administration_condition_id) REFERENCES administration_condition(id),
+  CONSTRAINT fk__iab_exam__administration_condition FOREIGN KEY(administration_condition_id) REFERENCES administration_condition(id),
+  CONSTRAINT fk__iab_exam__military_connected FOREIGN KEY(military_connected_id) REFERENCES military_connected(id),
   CONSTRAINT fk__iab_exam__section504 FOREIGN KEY(section504) REFERENCES boolean(id),
   CONSTRAINT fk__iab_exam__economic_disadvantage FOREIGN KEY(economic_disadvantage) REFERENCES strict_boolean(id),
   CONSTRAINT fk__iab_exam__migrant_status FOREIGN KEY(migrant_status) REFERENCES boolean(id)
@@ -522,6 +537,7 @@ CREATE TABLE exam_longitudinal (
   migrant_status smallint encode lzo NOT NULL,
   completeness_id smallint encode lzo,
   administration_condition_id smallint encode lzo,
+  military_connected_id smallint encode lzo,
   scale_score float encode bytedict NOT NULL,
   performance_level smallint encode lzo NOT NULL,
   completed_at timestamptz encode lzo NOT NULL,
@@ -541,7 +557,8 @@ CREATE TABLE exam_longitudinal (
   CONSTRAINT fk__exam_longitudinal__elas FOREIGN KEY(elas_id) REFERENCES elas(id),
   CONSTRAINT fk__exam_longitudinal__language FOREIGN KEY(language_id) REFERENCES language(id),
   CONSTRAINT fk__exam_longitudinal__completeness FOREIGN KEY(completeness_id) REFERENCES completeness(id),
-  CONSTRAINT fk__exam_longitudinal__administration_comdition FOREIGN KEY(administration_condition_id) REFERENCES administration_condition(id),
+  CONSTRAINT fk__exam_longitudinal__administration_condition FOREIGN KEY(administration_condition_id) REFERENCES administration_condition(id),
+  CONSTRAINT fk__exam_longitudinal__military_connected FOREIGN KEY(military_connected_id) REFERENCES military_connected(id),
   CONSTRAINT fk__exam_longitudinal__section504 FOREIGN KEY(section504) REFERENCES boolean(id),
   CONSTRAINT fk__exam_longitudinal__economic_disadvantage FOREIGN KEY(economic_disadvantage) REFERENCES strict_boolean(id),
   CONSTRAINT fk__exam_longitudinal__migrant_status FOREIGN KEY(migrant_status) REFERENCES boolean(id)

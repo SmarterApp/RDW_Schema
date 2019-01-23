@@ -29,11 +29,22 @@
 --   V1_3_0_3__acc_school_year.sql
 --   V1_3_0_4__language_order.sql
 --   V1_3_0_5__alias_name.sql
+--   military_connected was added during consolidation
 
 
 use ${schemaName};
 
 INSERT IGNORE INTO school_year (year) VALUES (2019);
+
+CREATE TABLE IF NOT EXISTS military_connected (
+  id tinyint NOT NULL PRIMARY KEY,
+  code varchar(30) NOT NULL UNIQUE
+);
+
+INSERT INTO military_connected (id, code) VALUES
+(1, 'NotMilitaryConnected'),
+(2, 'ActiveDuty'),
+(3, 'NationalGuardOrReserve');
 
 
 -- add without constraint, set default values, add constraint
@@ -181,11 +192,17 @@ SELECT value INTO @audit_setting FROM setting WHERE name = 'AUDIT_TRIGGER_ENABLE
 UPDATE setting SET value = 'FALSE' WHERE name = 'AUDIT_TRIGGER_ENABLE' AND value != 'FALSE';
 
 -- do the work
-ALTER TABLE exam ADD COLUMN language_id smallint;
+ALTER TABLE exam
+  ADD COLUMN language_id smallint,
+  ADD COLUMN military_connected_id tinyint;
+
 CALL loop_by_exam_id('UPDATE exam e JOIN language l ON LOWER(e.language_code) = l.code SET e.language_id = l.id, e.updated = e.updated WHERE e.language_code IS NOT NULL AND e.language_id IS NULL');
 CALL loop_by_exam_id('UPDATE exam e JOIN language l ON l.altcode IS NOT NULL AND e.language_code = l.altcode SET e.language_id = l.id, e.updated = e.updated WHERE e.language_code IS NOT NULL AND e.language_id IS NULL');
 
-ALTER TABLE audit_exam ADD COLUMN language_id smallint;
+ALTER TABLE audit_exam
+  ADD COLUMN language_id smallint,
+  ADD COLUMN military_connected_id tinyint;
+
 UPDATE audit_exam e JOIN language l ON LOWER(e.language_code) = l.code SET e.language_id = l.id WHERE e.language_id IS NULL;
 UPDATE audit_exam e JOIN language l ON l.altcode IS NOT NULL AND e.language_code = l.altcode SET e.language_id = l.id WHERE e.language_id IS NULL;
 
@@ -204,7 +221,7 @@ CREATE TRIGGER trg__exam__update
                           scale_score_std_err, performance_level, completed_at, import_id, update_import_id, deleted,
                           created, updated, grade_id, student_id, school_id, iep, lep, section504,
                           economic_disadvantage, migrant_status, eng_prof_lvl, t3_program_type, language_id,
-                          prim_disability_type, status_date, elas_id, elas_start_at,
+                          prim_disability_type, status_date, elas_id, elas_start_at, military_connected_id,
                           examinee_id, deliver_mode, hand_score_project, contract, test_reason,
                           assessment_admin_started_at, started_at, force_submitted_at, status,
                           item_count, field_test_count, pause_count, grace_period_restarts, abnormal_starts,
@@ -216,7 +233,7 @@ CREATE TRIGGER trg__exam__update
          OLD.scale_score_std_err, OLD.performance_level, OLD.completed_at, OLD.import_id, OLD.update_import_id, OLD.deleted,
          OLD.created, OLD.updated, OLD.grade_id, OLD.student_id, OLD.school_id, OLD.iep, OLD.lep, OLD.section504,
          OLD.economic_disadvantage, OLD.migrant_status, OLD.eng_prof_lvl, OLD.t3_program_type, OLD.language_id,
-         OLD.prim_disability_type, OLD.status_date, OLD.elas_id, OLD.elas_start_at,
+         OLD.prim_disability_type, OLD.status_date, OLD.elas_id, OLD.elas_start_at, OLD.military_connected_id,
          OLD.examinee_id, OLD.deliver_mode, OLD.hand_score_project, OLD.contract, OLD.test_reason,
          OLD.assessment_admin_started_at, OLD.started_at, OLD.force_submitted_at, OLD.status,
          OLD.item_count, OLD.field_test_count, OLD.pause_count, OLD.grace_period_restarts, OLD.abnormal_starts,
@@ -234,7 +251,7 @@ CREATE TRIGGER trg__exam__delete
                           scale_score_std_err, performance_level, completed_at, import_id, update_import_id, deleted,
                           created, updated, grade_id, student_id, school_id, iep, lep, section504,
                           economic_disadvantage, migrant_status, eng_prof_lvl, t3_program_type, language_id,
-                          prim_disability_type, status_date, elas_id, elas_start_at,
+                          prim_disability_type, status_date, elas_id, elas_start_at, military_connected_id,
                           examinee_id, deliver_mode, hand_score_project, contract, test_reason,
                           assessment_admin_started_at, started_at, force_submitted_at, status,
                           item_count, field_test_count, pause_count, grace_period_restarts, abnormal_starts,
@@ -246,7 +263,7 @@ CREATE TRIGGER trg__exam__delete
          OLD.scale_score_std_err, OLD.performance_level, OLD.completed_at, OLD.import_id, OLD.update_import_id, OLD.deleted,
          OLD.created, OLD.updated, OLD.grade_id, OLD.student_id, OLD.school_id, OLD.iep, OLD.lep, OLD.section504,
          OLD.economic_disadvantage, OLD.migrant_status, OLD.eng_prof_lvl, OLD.t3_program_type, OLD.language_id,
-         OLD.prim_disability_type, OLD.status_date, OLD.elas_id, OLD.elas_start_at,
+         OLD.prim_disability_type, OLD.status_date, OLD.elas_id, OLD.elas_start_at, OLD.military_connected_id,
          OLD.examinee_id, OLD.deliver_mode, OLD.hand_score_project, OLD.contract, OLD.test_reason,
          OLD.assessment_admin_started_at, OLD.started_at, OLD.force_submitted_at, OLD.status,
          OLD.item_count, OLD.field_test_count, OLD.pause_count, OLD.grace_period_restarts, OLD.abnormal_starts,

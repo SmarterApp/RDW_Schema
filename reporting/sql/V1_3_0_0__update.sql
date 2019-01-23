@@ -18,10 +18,26 @@
 --   V1_3_0_2__school_year.sql
 --   V1_3_0_4__language_order.sql
 --   V1_3_0_5__alias_name.sql
+--   military_connected was added during consolidation
+
 
 USE ${schemaName};
 
 INSERT IGNORE INTO school_year (year) VALUES (2019);
+
+
+CREATE TABLE IF NOT EXISTS military_connected (
+  id TINYINT NOT NULL PRIMARY KEY,
+  code VARCHAR(30) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS staging_military_connected (
+  id TINYINT NOT NULL PRIMARY KEY,
+  code VARCHAR(30) NOT NULL
+);
+
+ALTER TABLE exam
+  ADD COLUMN military_connected_code VARCHAR(30) NULL;
 
 
 ALTER TABLE subject_asmt_type ADD COLUMN target_report tinyint;
@@ -161,8 +177,9 @@ CALL loop_by_exam_id('UPDATE exam e JOIN language l ON LOWER(e.language_code) = 
 CALL loop_by_exam_id('UPDATE exam e JOIN language l ON l.altcode IS NOT NULL AND e.language_code = l.altcode SET e.language_code = l.code, e.updated = e.updated WHERE e.language_code IS NOT NULL');
 
 ALTER TABLE staging_exam
-  ADD COLUMN language_id smallint NULL,
-  DROP COLUMN language_code;
+  ADD COLUMN language_id SMALLINT NULL,
+  DROP COLUMN language_code,
+  ADD COLUMN military_connected_id TINYINT NULL;
 
 -- drop helper
 DROP PROCEDURE loop_by_exam_id;
