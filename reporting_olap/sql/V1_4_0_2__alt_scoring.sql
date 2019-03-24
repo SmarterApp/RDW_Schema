@@ -79,7 +79,7 @@ CREATE TABLE subject_score (
   asmt_type_id SMALLINT NOT NULL,
   score_type_id SMALLINT NOT NULL,
   code VARCHAR(10) NOT NULL,
-  CONSTRAINT fk__subject_score__type FOREIGN KEY(asmt_type_id) REFERENCES asmt_type(id),
+  CONSTRAINT fk__subject_score__asmt_type FOREIGN KEY(asmt_type_id) REFERENCES asmt_type(id),
   CONSTRAINT fk__subject_score__subject FOREIGN KEY(subject_id) REFERENCES subject(id),
   CONSTRAINT fk__subject_score__score_type FOREIGN KEY(score_type_id) REFERENCES score_type(id)
 ) DISTSTYLE ALL;
