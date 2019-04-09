@@ -53,7 +53,7 @@ ALTER TABLE staging_exam_claim_score
 ALTER TABLE subject_asmt_type
   ADD COLUMN alt_score_performance_level_count TINYINT NULL   COMMENT 'NULL indicates subject asmt does not have alt scores',
   ADD COLUMN printed_report TINYINT;
-UPDATE subject_asmt_type SET printed_report = IF(asmt_type_id IN (1,2), 1, 0);
+UPDATE subject_asmt_type SET printed_report = IF(subject_id IN (1,2), 1, 0);
 ALTER TABLE subject_asmt_type MODIFY COLUMN printed_report TINYINT NOT NULL;
 
 ALTER TABLE subject_claim_score

@@ -48,7 +48,7 @@ ALTER TABLE subject_asmt_type
   DROP COLUMN performance_level_standard_cutoff,
   DROP COLUMN claim_score_performance_level_count,
   ADD COLUMN printed_report TINYINT;
-UPDATE subject_asmt_type SET printed_report = IF(asmt_type_id IN (1,2), 1, 0);
+UPDATE subject_asmt_type SET printed_report = IF(subject_id IN (1,2), 1, 0);
 ALTER TABLE subject_asmt_type MODIFY COLUMN printed_report TINYINT NOT NULL;
 
 -- modify the subject claim score table to hold alt and claim score details
