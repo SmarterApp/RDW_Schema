@@ -17,8 +17,12 @@
 --   V1_4_0_1__add_user_query_table.sql
 --   V1_4_0_2__alt_scoring.sql
 --   V1_4_0_3__translation_label.sql
+-- Changes made during consolidation:
+--   add school year 2019
 
 USE ${schemaName};
+
+INSERT IGNORE INTO school_year VALUES (2019);
 
 CREATE TABLE IF NOT EXISTS user_query (
     id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,

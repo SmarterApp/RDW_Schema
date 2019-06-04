@@ -10,17 +10,23 @@
 --
 -- When first created, RDW_Schema was on build #422 and this incorporated:
 --   V1_4_0_2__alt_scoring.sql
+-- Changes made during consolidation:
+--   add school year 2019
+
+SET SEARCH_PATH to ${schemaName};
+
+SET client_encoding = 'UTF8';
+
+-- Redshift doesn't support INSERT IGNORE, UPSERT, etc.
+-- But neither does it enforce referential integrity, so we can do this:
+DELETE FROM school_year WHERE year = 2019;
+INSERT INTO school_year VALUES (2019);
 
 -- Modify schema for enhancements to configurable subjects
 --
 -- The alt scores are not used in aggregate reporting ... yet. Because of that, the schema and
 -- data changes only go to the subject level. Once new aggregate functionality is defined, more
 -- changes will be needed to push things down to the asmt and exam level for real reporting.
-
-SET SEARCH_PATH to ${schemaName};
-
-SET client_encoding = 'UTF8';
-
 
 CREATE TABLE score_type (
   id SMALLINT NOT NULL PRIMARY KEY SORTKEY,

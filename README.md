@@ -302,7 +302,7 @@ SELECT * FROM schema_version;
 -- if things look good, reset entries to match condensed scripts:
 DELETE FROM schema_version WHERE installed_rank > 9;
 INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) VALUES
-  (10, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', -231445162, 'root', '2019-06-03 12:00:00', 10000, 1);
+  (10, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', 1775397618, 'root', '2019-06-03 12:00:00', 10000, 1);
 
 USE reporting;
 -- query schema_version and make sure the applied scripts match the list of pre-condensed scripts
@@ -312,7 +312,7 @@ SELECT * FROM schema_version;
 -- if things look good, reset entries to match condensed scripts:
 DELETE FROM schema_version WHERE installed_rank > 7;
 INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) VALUES
-  (8, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', 198506224, 'root', '2019-06-03 12:00:00', 10000, 1);
+  (8, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', 328429987, 'root', '2019-06-03 12:00:00', 10000, 1);
 ```
 
 Similarly for Redshift (this is the first time we've modified the redshift schema as opposed to rebuilding it):

@@ -25,9 +25,13 @@
 --   V1_4_0_4__pipeline.sql
 --   V1_4_0_5__pipeline_input_type.sql
 --   V1_4_0_6__pipeline_active_version.sql
--- A change was made during consolidation: pipeline.active_version was changed from an int to varchar(8)
+-- Changes made during consolidation:
+--   pipeline.active_version was changed from an int to varchar(8)
+--   add school year 2019
 
 use ${schemaName};
+
+INSERT IGNORE INTO school_year VALUES (2019);
 
 CREATE TABLE IF NOT EXISTS score_type (
     id tinyint NOT NULL PRIMARY KEY,
