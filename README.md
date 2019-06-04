@@ -286,3 +286,44 @@ DELETE FROM schema_version WHERE installed_rank > 6;
 INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) VALUES
   (7, '1.3.0.0', 'update', 'SQL', 'V1_3_0_0__update.sql', -518988024, 'root', '2019-01-23 12:00:00', 10000, 1);
 ```
+
+#### v1.4.0
+
+The v1_4_0 script is a patch to v1.3.0. They were condensed from the incremental scripts created during the
+development of the release. As noted above, a db instance may be reset so the flyway table represents as if
+this script had been used instead of incremental updates.
+NOTE: the installed rank may vary (0-based vs. 1-based); modify the SQL to match what is in the schema table.
+```sql
+USE warehouse;
+-- query schema_version and make sure the applied scripts match the list of pre-condensed scripts
+-- as noted in the condensed script, the ninth entry should be V1_3_0_0__update.sql and the last
+-- entry should be for V1_4_0_6__pipeline_active_version.sql
+SELECT * FROM schema_version;
+-- if things look good, reset entries to match condensed scripts:
+DELETE FROM schema_version WHERE installed_rank > 9;
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) VALUES
+  (10, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', -695741534, 'root', '2019-06-03 12:00:00', 10000, 1);
+
+USE reporting;
+-- query schema_version and make sure the applied scripts match the list of pre-condensed scripts
+-- as noted in the condensed script, the sixth entry should be V1_3_0_0__update.sql and the last
+-- entry should be for V1_4_0_3__translation_label.sql
+SELECT * FROM schema_version;
+-- if things look good, reset entries to match condensed scripts:
+DELETE FROM schema_version WHERE installed_rank > 7;
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) VALUES
+  (8, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', 198506224, 'root', '2019-06-03 12:00:00', 10000, 1);
+```
+
+Similarly for Redshift (this is the first time we've modified the redshift schema as opposed to rebuilding it):
+```sql
+SET SEARCH_PATH to ${schemaName};
+-- query schema_version and make sure the applied scripts match the list of pre-condensed scripts
+-- as noted in the condensed script, the second entry should be V1_0_0_1__dml.sql and the last
+-- entry should be for V1_4_0_2__alt_scoring.sql
+SELECT * FROM schema_version;
+-- if things look good, reset entries to match condensed scripts:
+DELETE FROM schema_version WHERE installed_rank > 2;
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) VALUES
+  (3, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', TBD, 'root', '2019-06-03 12:00:00', 10000, 1);
+```
