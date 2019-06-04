@@ -300,6 +300,7 @@ USE warehouse;
 -- entry should be for V1_4_0_6__pipeline_active_version.sql
 SELECT * FROM schema_version;
 -- if things look good, reset entries to match condensed scripts:
+ALTER TABLE pipeline MODIFY COLUMN active_version varchar(8);
 DELETE FROM schema_version WHERE installed_rank > 9;
 INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) VALUES
   (10, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', 1775397618, 'root', '2019-06-03 12:00:00', 10000, 1);
@@ -317,7 +318,7 @@ INSERT INTO schema_version (installed_rank, version, description, type, script, 
 
 Similarly for Redshift (this is the first time we've modified the redshift schema as opposed to rebuilding it):
 ```sql
-SET SEARCH_PATH to ${schemaName};
+SET SEARCH_PATH to reporting;
 -- query schema_version and make sure the applied scripts match the list of pre-condensed scripts
 -- as noted in the condensed script, the second entry should be V1_0_0_1__dml.sql and the last
 -- entry should be for V1_4_0_2__alt_scoring.sql
@@ -325,5 +326,5 @@ SELECT * FROM schema_version;
 -- if things look good, reset entries to match condensed scripts:
 DELETE FROM schema_version WHERE installed_rank > 2;
 INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) VALUES
-  (3, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', TBD, 'root', '2019-06-03 12:00:00', 10000, 1);
+  (3, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', 1925120058, 'root', '2019-06-03 12:00:00', 10000, 1);
 ```
