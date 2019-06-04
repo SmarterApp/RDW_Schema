@@ -25,6 +25,7 @@
 --   V1_4_0_4__pipeline.sql
 --   V1_4_0_5__pipeline_input_type.sql
 --   V1_4_0_6__pipeline_active_version.sql
+-- A change was made during consolidation: pipeline.active_version was changed from an int to varchar(8)
 
 use ${schemaName};
 
@@ -150,7 +151,7 @@ CREATE TABLE IF NOT EXISTS pipeline (
     id tinyint NOT NULL PRIMARY KEY,
     code varchar(20) NOT NULL UNIQUE,
     input_type varchar(20) NOT NULL,
-    active_version int
+    active_version varchar(8)
 );
 
 CREATE TABLE IF NOT EXISTS pipeline_script (
