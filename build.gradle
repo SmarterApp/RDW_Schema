@@ -13,7 +13,7 @@ buildscript {
 
 plugins {
     id 'org.flywaydb.flyway' version '5.2.4'
-    id 'com.jfrog.artifactory' version '4.8.1'
+    id 'com.jfrog.artifactory' version '4.11.0'
     id 'java'
     id 'idea'
 }
@@ -23,11 +23,11 @@ repositories {
 }
 
 dependencies {
-    compile "org.flywaydb:flyway-core:5.2.4"
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.assertj:assertj-core:3.11.1'
-    testCompile 'mysql:mysql-connector-java:5.1.46'
-    testCompile 'org.apache.tomcat:tomcat-jdbc:8.5.35'
+    implementation 'org.flywaydb:flyway-core:5.2.4'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'mysql:mysql-connector-java:5.1.46'
+    testImplementation 'org.assertj:assertj-core:3.14.0'
+    testImplementation 'org.apache.tomcat:tomcat-jdbc:8.5.35'
 }
 
 flyway {
@@ -39,7 +39,6 @@ apply plugin: 'distribution'
 apply plugin: 'maven-publish'
 
 group = 'org.opentestsystem.rdw.schema'
-version = '2.4.0-SNAPSHOT'
 
 if (project.hasProperty("buildNumber")) {
     project.setVersion(project.version.toString().replaceAll("SNAPSHOT", "${buildNumber}"))
@@ -150,6 +149,7 @@ distributions {
                 include 'LICENSE'
                 include 'build.gradle'
                 include 'gradle.properties'
+                include 'settings.gradle'
             }
         }
     }
@@ -166,15 +166,18 @@ publishing {
 }
 
 //Install task for installing (publishing) to local .m2
-task install(dependsOn: publishToMavenLocal)
+task install(dependsOn: [build, publishToMavenLocal])
 
 //For ci use only
 artifactory {
+    contextUrl = 'https://artifactory.smarterbalanced.org/artifactory/'
+
     publish {
         repository {
             repoKey = 'libs-releases-local'
+            username = project.artifactoryUser
+            password = project.artifactoryPassword
             maven = true
-
         }
         defaults {
             publications('schema')
@@ -184,7 +187,6 @@ artifactory {
         repository {
             repoKey = 'libs-releases'
             maven = true
-
         }
     }
 }

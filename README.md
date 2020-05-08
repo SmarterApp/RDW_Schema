@@ -1,44 +1,103 @@
 ## RDW_Schema 
-The goal of this project is to create db schema for Smarter Balanced Reporting Data Warehouse and load the core data.
+The goal of this project is to create the db schema for the Smarter Balanced Reporting Data Warehouse, 
+load the core data, and apply schema changes as the project evolves. 
 
-This project uses [flyway](https://flywaydb.org/getstarted). Gradle will take care of getting flyway making sure things work. 
+Document Links:
+* RDW_Schema is part of [RDW](https://github.com/SmarterApp/RDW)
+* [License](LICENSE)
+* [MySql](#mysql)
+* [Redshift](#redshift)
+* [Contributing](#contributing)
+* [Release scripts](#release-scripts)
 
-### MySql
-MySQL scripts are compatible with MySQL 5.6 and as well as AWS Aurora.
+There are multiple schemas in this project: a data warehouse ("warehouse"), a data mart ("reporting") and an OLAP
+store ("reporting_olap"). For developers, there are test schemas for warehouse and reporting (because the OLAP
+datastore cannot be run locally, there is no test schema for reporting_olap). 
+
+This project uses [flyway](https://flywaydb.org/getstarted). Gradle has been configured to wrap flyway, 
+exposing the relevant functionality as tasks. The tasks are only available if the database credentials
+have been defined; these default to reasonable values for developers, but it is a good practice to 
+explicitly specify them when invoking the tasks.
+
+It is highly recommended to install gdub (https://github.com/dougborg/gdub) because it handles some shortcomings 
+of gradle's commandline behavior. The instructions assume this, using `gw` instead of `./gradlew` of `gradle`.
+
+### MySQL
+MySQL scripts are compatible with MySQL 5.6.
+
+#### Installing MySQL - Native
+MySQL is required for building (integration tests) and running RDW applications. To better match production, MySQL
+should be run as a native app outside the container framework. There are various ways to install it; please be sure 
+to install version 5.6 which is older and not the default! Here are the basic brew instructions, be sure to follow
+any post-install instructions:
+```bash
+brew update
+brew install mysql@5.6
+echo 'export PATH="/usr/local/opt/mysql@5.6/bin:$PATH"' >> ~/.zshrc
+brew services start mysql@5.6
+mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
+```
+Edit `/usr/local/Cellar/mysql@5.6/5.6.*/my.cnf` and add the following lines:
+```
+[mysqld]
+explicit_defaults_for_timestamp=1
+default-time-zone='UTC'
+bind-address=*
+```
+Restart mysql and check the settings:
+```bash
+brew services restart mysql@5.6
+echo 'SELECT @@explicit_defaults_for_timestamp;' | mysql -u root 
+echo 'SELECT @@system_time_zone, @@global.time_zone, @@session.time_zone;' | mysql -u root
+```
+
+#### Installing MySQL - Docker
+Experiment in running mysql in docker so you don't have to do a native side-by-side install or whatever.
+
+```bash
+# FYI, to get list of settings
+docker run -it --rm mysql:5.6 --verbose --help
+
+# launch mysql
+docker run --rm --name rdw-mysql -p 3306:3306 -v /tmp:/tmp -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -d mysql:5.6 --explicit-defaults-for-timestamp=1 --secure-file-priv=''
+
+# some examples of exec'ing things 
+docker exec -it rdw-mysql bash
+mkdir -p /tmp/dataset
+docker exec rdw-mysql mysqldump -u root --tab=/tmp/dataset warehouse 
+
+# you can stop and start the container; data is preserved as long as container isn't removed/recreated
+docker stop rdw-mysql
+docker start rdw-mysql
+```
 
 #### To create the schema 
-There are multiple schemas in this project: a data warehouse ("warehouse"), a data mart ("reporting") and an OLAP
-store ("reporting_olap"). For warehouse and reporting there are two schemas: one for running the apps, the other 
-for running integration tests (with suffix _test). Gradle is configured to proxy all the flyway tasks defined 
-[here](https://flywaydb.org/documentation/gradle/).
-
 To install or migrate, run:
 ```bash
-RDW_Schema$ ./gradlew migrateWarehouse (or migratewarehouse_test)
+RDW_Schema$ gw migrateWarehouse (or migratewarehouse_test)
 OR
-RDW_Schema$ ./gradlew migrateReporting (or migratereporting_test)
+RDW_Schema$ gw migrateReporting (or migratereporting_test)
 OR
-RDW_Schema$ ./gradlew migrateAll (migrates the dev instances for the schemas)
+RDW_Schema$ gw migrateAll (migrates the dev instances for the schemas)
 ```
 
 #### To wipe out the schema
 ```bash
-RDW_Schema$ ./gradlew cleanWarehouse (or cleanwarehouse_test)
+RDW_Schema$ gw cleanWarehouse (or cleanwarehouse_test)
 OR
-RDW_Schema$ ./gradlew cleanReporting (or cleanreporting_test)
+RDW_Schema$ gw cleanReporting (or cleanreporting_test)
 OR
-RDW_Schema$ ./gradlew cleanAll 
+RDW_Schema$ gw cleanAll 
 ```
 
 #### Other Commands
 To see a listing of all of the tasks available, run (output will depend on properties):
 ```bash
-RDW_Schema$ ./gradlew tasks
+RDW_Schema$ gw tasks
 
 ------------------------------------------------------------
 All tasks runnable from root project
 ------------------------------------------------------------
-
 ... 
 
 Schema tasks
@@ -71,18 +130,18 @@ migrateAll_test - Custom group task for: migrateReporting_test, migrateWarehouse
 
 Other task examples:
 ```bash
-RDW_Schema$ ./gradlew validateWarehouse
+RDW_Schema$ gw validateWarehouse
 or
-RDW_Schema$ ./gradlew infoWarehouse
+RDW_Schema$ gw infoWarehouse
 or
-RDW_Schema$ ./gradlew repairWarehouse
+RDW_Schema$ gw repairWarehouse
 ```
 
 #### Alternate Properties
 The flyway tasks use gradle properties to set the database url, schema, user, password, etc. These can be set in the
 `gradle.properties` file or overridden on the command line, e.g.
 ```bash
-RDW_Schema$ ./gradlew -Pdatabase_url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -Pdatabase_user=sbac -Pdatabase_password=mypassword infoReporting
+RDW_Schema$ gw -Pdatabase_url="jdbc:mysql://rdw-aurora-dev.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/" -Pdatabase_user=sbac -Pdatabase_password=mypassword infoReporting
 ```
 
 ### Redshift
@@ -100,7 +159,7 @@ IntelliJ developers: https://stackoverflow.com/questions/32319052/connect-intell
 #### To wipe out and re-create tables for redshift
 To deal with just the redshift tables, use the `reporting_olap` tasks. Using the same example developer Bob:
 ```bash
-RDW_Schema$ gradle -Pschema_prefix=bob_ \ 
+RDW_Schema$ gw -Pschema_prefix=bob_ \ 
     -Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/ci \
     -Predshift_user=bob -Predshift_password=bob_redshift_password \
     cleanReporting_olap_test migrateReporting_olap_test
@@ -110,7 +169,7 @@ When testing the OLAP migration process, there is also the MySQL migrate_olap sc
 tasks can be specified but it requires a lot of settings dealing with two separate AWS databases. Continuing with
 Bob, assume they have created `bob_migrate_olap_test` schema in the dev instance of Aurora:
 ```bash
-RDW_Schema$ gradle -Pschema_prefix=bob_ \
+RDW_Schema$ gw -Pschema_prefix=bob_ \
     -Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/ci -Predshift_user=bob -Predshift_password=bob_redshift_password \
     -Pdatabase_url=jdbc:mysql://rdw-aurora-ci.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306 -Pdatabase_user=bob -Pdatabase_password=bob_aurora_password \
     cleanReporting_olap_test cleanMigrate_olap_test migrateReporting_olap_test migrateMigrate_olap_test    
@@ -119,7 +178,7 @@ RDW_Schema$ gradle -Pschema_prefix=bob_ \
 #### CI and QA
 For CI, only the test schemas exist (with no schema prefix):
 ```bash
-gradle \
+gw \
 -Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/ci -Predshift_user=ci -Predshift_password= \
 -Pdatabase_url=jdbc:mysql://rdw-aurora-ci.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306 -Pdatabase_user=sbac -Pdatabase_password= \
 cleanAll_test migrateAll_test
@@ -127,13 +186,13 @@ cleanAll_test migrateAll_test
 
 For the `awsqa` instance there is one Aurora database and we should never be cleaning the data:
 ```bash
-gradle \
+gw \
 -Pdatabase_url=jdbc:mysql://rdw-aurora-qa.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/ -Pdatabase_user=sbac -Pdatabase_password= \
 -Predshift_url=jdbc:redshift://rdw-qa.cibkulpjrgtr.us-west-2.redshift.amazonaws.com:5439/qa -Predshift_user=awsqa -Predshift_password= \
 migrateWarehouse migrateMigrate_olap migrateReporting_olap migrateReporting
 ```
 
-### Developing
+### Contributing
 Flyway requires prefixing each script with the version. To avoid a prefix collision with version specificity, use a 
 prefix that has the version followed by an incrementing number, e.g. `V1_0_1_23__add_stuff.sql` would be the 23rd
 script for the 1.0.1 release. 
