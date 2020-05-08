@@ -20,7 +20,7 @@ have been defined; these default to reasonable values for developers, but it is 
 explicitly specify them when invoking the tasks.
 
 It is highly recommended to install gdub (https://github.com/dougborg/gdub) because it handles some shortcomings 
-of gradle's commandline behavior. The instructions assume this, using `gw` instead of `./gradlew` of `gradle`.
+of gradle's commandline behavior. The instructions assume this, using `gw` instead of `./gradlew` or `gradle`.
 
 ### MySQL
 MySQL scripts are compatible with MySQL 5.6.
