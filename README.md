@@ -403,3 +403,8 @@ DELETE FROM schema_version WHERE installed_rank > 2;
 INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) VALUES
   (3, '1.4.0.0', 'update', 'SQL', 'V1_4_0_0__update.sql', 1925120058, 'root', '2019-06-03 12:00:00', 10000, 1);
 ```
+
+#### v2.4.0
+
+The 2.4.0 upgrade to 1.4.0 includes:
+* V2_4_0_0__update.sql - modifies the OLAP database to support alt-scores
