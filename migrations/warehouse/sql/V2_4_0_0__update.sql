@@ -4,6 +4,12 @@
 
 use ${schemaName};
 
+-- store trait report flag by subject/assessment
+-- default to false except for ELA Summative
+ALTER TABLE subject_asmt_type ADD COLUMN trait_report tinyint;
+UPDATE subject_asmt_type SET trait_report = IF(asmt_type_id = 3 AND subject_id = 2, 1, 0);
+ALTER TABLE subject_asmt_type MODIFY COLUMN trait_report tinyint NOT NULL;
+
 -- table to store trait codes by subject
 CREATE TABLE subject_trait (
     id smallint NOT NULL AUTO_INCREMENT PRIMARY KEY,
