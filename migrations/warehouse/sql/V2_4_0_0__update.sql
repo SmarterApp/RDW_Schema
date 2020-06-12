@@ -17,6 +17,7 @@ CREATE TABLE subject_trait (
     code varchar(20) NOT NULL,
     purpose varchar(10) NOT NULL,
     category varchar(10) NOT NULL,
+    max_score smallint NOT NULL,
     INDEX idx__trait__subject (subject_id),
     CONSTRAINT fk__trait__subject FOREIGN KEY (subject_id) REFERENCES subject(id),
     UNIQUE INDEX idx__subject_trait__subject_code(subject_id, code)
@@ -24,30 +25,29 @@ CREATE TABLE subject_trait (
 
 -- enter known ELA WER traits
 -- (include id for consistency with reporting database update)
-INSERT INTO subject_trait (id, subject_id, code, purpose, category) VALUES
-(01, 2, 'SOCK_ARGU_ORG', 'ARGU', 'ORG'),
-(02, 2, 'SOCK_ARGU_CON', 'ARGU', 'CON'),
-(03, 2, 'SOCK_ARGU_EVI', 'ARGU', 'EVI'),
-(04, 2, 'SOCK_EXPL_ORG', 'EXPL', 'ORG'),
-(05, 2, 'SOCK_EXPL_CON', 'EXPL', 'CON'),
-(06, 2, 'SOCK_EXPL_EVI', 'EXPL', 'EVI'),
-(07, 2, 'SOCK_INFO_ORG', 'INFO', 'ORG'),
-(08, 2, 'SOCK_INFO_CON', 'INFO', 'CON'),
-(09, 2, 'SOCK_INFO_EVI', 'INFO', 'EVI'),
-(10, 2, 'SOCK_NARR_ORG', 'NARR', 'ORG'),
-(11, 2, 'SOCK_NARR_CON', 'NARR', 'CON'),
-(12, 2, 'SOCK_NARR_EVI', 'NARR', 'EVI'),
-(13, 2, 'SOCK_OPIN_ORG', 'OPIN', 'ORG'),
-(14, 2, 'SOCK_OPIN_CON', 'OPIN', 'CON'),
-(15, 2, 'SOCK_OPIN_EVI', 'OPIN', 'EVI');
+INSERT INTO subject_trait (id, subject_id, code, purpose, category, max_score) VALUES
+(01, 2, 'SOCK_ARGU_ORG', 'ARGU', 'ORG', 4),
+(02, 2, 'SOCK_ARGU_CON', 'ARGU', 'CON', 2),
+(03, 2, 'SOCK_ARGU_EVI', 'ARGU', 'EVI', 4),
+(04, 2, 'SOCK_EXPL_ORG', 'EXPL', 'ORG', 4),
+(05, 2, 'SOCK_EXPL_CON', 'EXPL', 'CON', 2),
+(06, 2, 'SOCK_EXPL_EVI', 'EXPL', 'EVI', 4),
+(07, 2, 'SOCK_INFO_ORG', 'INFO', 'ORG', 4),
+(08, 2, 'SOCK_INFO_CON', 'INFO', 'CON', 2),
+(09, 2, 'SOCK_INFO_EVI', 'INFO', 'EVI', 4),
+(10, 2, 'SOCK_NARR_ORG', 'NARR', 'ORG', 4),
+(11, 2, 'SOCK_NARR_CON', 'NARR', 'CON', 2),
+(12, 2, 'SOCK_NARR_EVI', 'NARR', 'EVI', 4),
+(13, 2, 'SOCK_OPIN_ORG', 'OPIN', 'ORG', 4),
+(14, 2, 'SOCK_OPIN_CON', 'OPIN', 'CON', 2),
+(15, 2, 'SOCK_OPIN_EVI', 'OPIN', 'EVI', 4);
 
 -- table to store exam-level trait scores
 CREATE TABLE exam_trait_score (
     id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
     exam_id bigint NOT NULL,
     trait_id smallint NOT NULL,
-    score float,
-    stderr float,
+    score smallint,
     condition_code varchar(10),
     INDEX idx__exam_trait_score__exam (exam_id),
     CONSTRAINT fk__exam_trait_score__exam FOREIGN KEY (exam_id) REFERENCES exam(id)
@@ -62,23 +62,22 @@ CREATE TABLE IF NOT EXISTS audit_exam_trait_score (
     exam_trait_score_id bigint NOT NULL,
     exam_id bigint NOT NULL,
     trait_id smallint NOT NULL,
-    score float,
-    stderr float,
+    score smallint,
     condition_code varchar(10)
 );
 
 CREATE TRIGGER trg__exam_trait_score__update
     BEFORE UPDATE ON exam_trait_score
     FOR EACH ROW
-    INSERT INTO audit_exam_trait_score (action, database_user, exam_trait_score_id, exam_id, trait_id, score, stderr, condition_code)
-    SELECT 'update', USER(), OLD.id, OLD.exam_id, OLD.trait_id, OLD.score, OLD.stderr, OLD.condition_code
+    INSERT INTO audit_exam_trait_score (action, database_user, exam_trait_score_id, exam_id, trait_id, score, condition_code)
+    SELECT 'update', USER(), OLD.id, OLD.exam_id, OLD.trait_id, OLD.score, OLD.condition_code
     FROM setting s
     WHERE s.name = 'AUDIT_TRIGGER_ENABLE' AND s.value = 'TRUE';
 
 CREATE TRIGGER trg__exam_trait_score__delete
     BEFORE DELETE ON exam_trait_score
     FOR EACH ROW
-    INSERT INTO audit_exam_trait_score (action, database_user, exam_trait_score_id, exam_id, trait_id, score, stderr, condition_code)
-    SELECT 'delete', USER(), OLD.id, OLD.exam_id, OLD.trait_id, OLD.score, OLD.stderr, OLD.condition_code
+    INSERT INTO audit_exam_trait_score (action, database_user, exam_trait_score_id, exam_id, trait_id, score, condition_code)
+    SELECT 'delete', USER(), OLD.id, OLD.exam_id, OLD.trait_id, OLD.score, OLD.condition_code
     FROM setting s
     WHERE s.name = 'AUDIT_TRIGGER_ENABLE' AND s.value = 'TRUE';
