@@ -44,6 +44,16 @@ INSERT INTO subject_trait (id, subject_id, code, purpose, category, max_score) V
 (14, 2, 'SOCK_OPIN_CON', 'OPIN', 'CON', 2),
 (15, 2, 'SOCK_OPIN_EVI', 'OPIN', 'EVI', 4);
 
+INSERT INTO subject_translation (subject_id, label_code, label) VALUES
+(2, 'subject.ELA.trait.purpose.ARGU', 'Argument'),
+(2, 'subject.ELA.trait.purpose.EXPL', 'Explanatory'),
+(2, 'subject.ELA.trait.purpose.INFO', 'Informative'),
+(2, 'subject.ELA.trait.purpose.NARR', 'Narrative'),
+(2, 'subject.ELA.trait.purpose.OPIN', 'Opinion'),
+(2, 'subject.ELA.trait.category.ORG', 'Organization/Purpose'),
+(2, 'subject.ELA.trait.category.CON', 'Conventions'),
+(2, 'subject.ELA.trait.category.EVI', 'Evidence/Elaboration');
+
 CREATE TABLE staging_subject_trait (
    id smallint NOT NULL AUTO_INCREMENT PRIMARY KEY,
    subject_id smallint NOT NULL,
