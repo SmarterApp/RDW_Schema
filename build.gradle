@@ -107,7 +107,10 @@ flywayActions.keySet().each { action ->
                 driver = config[6]
                 placeholders = ['schemaName': config[3]]
                 group = 'Schema'
-                description = description + ' (schema: ' + config[3] + ')'
+                description = description + ' (url: ' + config[2] + ', schema: ' + config[3] + ')'
+                doFirst {
+                    logger.lifecycle(MessageFormat.format("Running {0} on {1}{2}", taskName, config[2], config[3]))
+                }
             }
         }
         // Add this task to tasks for 'All' and 'All_test'
@@ -118,7 +121,7 @@ flywayActions.keySet().each { action ->
 }
 
 // create group tasks for clean and migrate
-['clean', 'migrate'].each { action ->
+['info', 'clean', 'migrate'].each { action ->
     ['All', 'All_test'].each { configGroup ->
         def subTasks = groupTasks.get(action + configGroup)
         if (!subTasks || subTasks.size() < 2) return
