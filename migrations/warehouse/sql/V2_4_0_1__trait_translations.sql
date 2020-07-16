@@ -26,8 +26,8 @@ INSERT INTO subject_translation (subject_id, label_code, label) VALUES
   (2, 'subject.ELA.trait.category.EVI.name', 'Evidence/Elaboration');
 
 INSERT INTO subject_translation (subject_id, label_code, label) VALUES
-  (2, 'subject.ELA.trait.purpose.ARGU.description', 'Argumentative'),
-  (2, 'subject.ELA.trait.purpose.EXPL.description', 'Explanatory'),
-  (2, 'subject.ELA.trait.purpose.INFO.description', 'Informative'),
-  (2, 'subject.ELA.trait.purpose.NARR.description', 'Narrative'),
-  (2, 'subject.ELA.trait.purpose.OPIN.description', 'Opinion');
+  (2, 'subject.ELA.trait.purpose.ARGU.description', 'Description of Argumentative purpose'),
+  (2, 'subject.ELA.trait.purpose.EXPL.description', 'Description of Explanatory purpose'),
+  (2, 'subject.ELA.trait.purpose.INFO.description', 'Description of Informative purpose'),
+  (2, 'subject.ELA.trait.purpose.NARR.description', 'Description of Narrative purpose'),
+  (2, 'subject.ELA.trait.purpose.OPIN.description', 'Description of Opinion purpose');
