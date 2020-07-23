@@ -109,7 +109,7 @@ flywayActions.keySet().each { action ->
                 group = 'Schema'
                 description = description + ' (url: ' + config[2] + ', schema: ' + config[3] + ')'
                 doFirst {
-                    logger.lifecycle(MessageFormat.format("Running {0} on {1}{2}", taskName, config[2], config[3]))
+                    logger.lifecycle(MessageFormat.format("Running {0} on {1}, {2}", taskName, config[2], config[3]))
                 }
             }
         }
