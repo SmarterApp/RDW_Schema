@@ -28,23 +28,13 @@ CREATE TABLE district_embargo (
     school_year smallint NOT NULL,
     subject_id smallint NOT NULL,
     aggregate smallint,
+    migrate_id bigint,
     UNIQUE (district_id, school_year, subject_id),
     CONSTRAINT fk__district_embargo__district FOREIGN KEY (district_id) REFERENCES district (id),
-    CONSTRAINT fk__district_embargo__school_year FOREIGN KEY (school_year) REFERENCES reporting.school_year (year),
+    CONSTRAINT fk__district_embargo__school_year FOREIGN KEY (school_year) REFERENCES school_year (year),
     CONSTRAINT fk__district_embargo__subject FOREIGN KEY (subject_id) REFERENCES subject (id),
     CONSTRAINT fk__district_embargo__status FOREIGN KEY(aggregate) REFERENCES embargo_status(id)
 ) DISTSTYLE ALL;
-
--- Populate district_embargo from current school table, subjects, school years.
--- Based on requirements for Phase 6, exams for all districts for all subjects for
--- all previous school years should be set to RELEASED (2). For the current school
--- year, there should be no entries, for which the system will default to LOADING.
--- So, the current embargo settings just don't matter.
-INSERT IGNORE INTO district_embargo (district_id, school_year, subject_id, aggregate)
-  SELECT sc.district_id, y.year AS school_year, s.id AS subject_id, 2 AS aggregate
-  FROM school sc
-    JOIN subject s
-    JOIN (SELECT year FROM school_year WHERE year NOT IN (SELECT max(year) FROM school_year)) y;
 
 -- drop obsolete column in school table
 ALTER TABLE school
@@ -57,5 +47,6 @@ CREATE TABLE staging_district_embargo (
   school_year smallint NOT NULL,
   subject_id smallint NOT NULL,
   aggregate smallint,
+  migrate_id bigint NOT NULL,
   UNIQUE (district_id, school_year, subject_id)
 );
