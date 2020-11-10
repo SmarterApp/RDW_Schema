@@ -5,6 +5,7 @@
 use ${schemaName};
 
 -- reference table
+DROP TABLE IF EXISTS embargo_status;
 CREATE TABLE embargo_status (
   id tinyint NOT NULL PRIMARY KEY,
   name varchar(20) NOT NULL UNIQUE
@@ -22,6 +23,7 @@ INSERT INTO embargo_status (id, name) VALUES
 -- table is needed to handle the one-to-many. Since these settings are at the district level,
 -- there is no longer a benefit of pushing the data down to the school level (there would be
 -- a multiplicative effect on the size of the child table).
+DROP TABLE IF EXISTS district_embargo;
 CREATE TABLE district_embargo (
     district_id int NOT NULL,
     school_year smallint NOT NULL,
@@ -35,25 +37,12 @@ CREATE TABLE district_embargo (
     CONSTRAINT fk__district_embargo__status FOREIGN KEY (individual) REFERENCES embargo_status(id)
 );
 
--- Populate district_embargo from current school table, subjects, school years.
--- Based on requirements for Phase 6, exams for all districts for all subjects for
--- all previous school years should be set to RELEASED (2). For the current school
--- year, there should be no entries, for which the system will default to LOADING.
--- So, the current embargo settings just don't matter.
--- All previous years should be set to Released.
-INSERT IGNORE INTO district_embargo (school_year, district_id, subject_id, individual)
-SELECT  y.year, d.id, s.id, 2
-FROM school_year y
-         JOIN district d
-         JOIN subject s
-WHERE y.year NOT IN (SELECT max(year) FROM school_year);
-
 -- drop obsolete column in school table
 ALTER TABLE school
   DROP COLUMN embargo_enabled;
 
 -- recreate the staging table
-DROP TABLE staging_district_embargo;
+DROP TABLE IF EXISTS staging_district_embargo;
 CREATE TABLE staging_district_embargo (
   district_id int NOT NULL,
   school_year smallint NOT NULL,
