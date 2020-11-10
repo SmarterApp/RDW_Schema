@@ -32,17 +32,6 @@ INSERT INTO embargo_status (id, name) VALUES
 (1, 'Reviewing'),
 (2, 'Released');
 
--- All previous years should be set to Released.
-DELETE FROM district_embargo WHERE subject_id IS NULL;
-INSERT IGNORE INTO district_embargo (school_year, district_id, subject_id, individual, aggregate)
-SELECT  y.year, d.id, s.id, 2, 2
-FROM school_year y
-         JOIN district d
-         JOIN subject s
-WHERE y.year NOT IN (SELECT max(year) FROM school_year);
-
--- TODO: what to do with current year?
-
 -- Add foreign key constraints to subject_id and embargo status, and primary key to include
 -- school_year, district_id, and subject_id
 ALTER TABLE district_embargo
@@ -52,7 +41,12 @@ ALTER TABLE district_embargo
     ADD CONSTRAINT fk__district_embargo__individual_status FOREIGN KEY (individual) REFERENCES embargo_status(id),
     ADD CONSTRAINT fk__district_embargo__aggregate_status FOREIGN KEY (aggregate) REFERENCES embargo_status(id);
 
--- TODO: update audit_district_embargo records or delete them all?
+-- Backup old audit history and clear out current.
+CREATE TABLE legacy_audit_district_embargo SELECT * FROM audit_district_embargo;
+
+-- Empty out old tables
+DELETE FROM district_embargo WHERE 1=1;
+DELETE FROM audit_district_embargo WHERE 1=1;
 
 -- Update triggers to handle new auditing logic
 CREATE TRIGGER trg__district_embargo__insert
