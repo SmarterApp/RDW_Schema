@@ -1,27 +1,18 @@
--- v2.4.0_4 flyway script
---
--- NOTE: this script was modified after initial creation which will mess up
--- things if the older version was run successfully. The original version had
--- a checksum of -385633165. However, if it was run successfully, the embargo
--- table must've been empty which means you don't need to rerun this script.
--- Update the schema_version and set the checksum to the correct value for
--- this version of the script (which can't be shown here because documenting
--- it will change it ... sigh).
---
+-- v2.5.0_1 flyway script
 -- adds support for finer-grained embargo control
 
 use ${schemaName};
 
-DROP TRIGGER trg__district_embargo__insert;
-DROP TRIGGER trg__district_embargo__update;
-DROP TRIGGER trg__district_embargo__delete;
+DROP TRIGGER IF EXISTS trg__district_embargo__insert;
+DROP TRIGGER IF EXISTS trg__district_embargo__update;
+DROP TRIGGER IF EXISTS trg__district_embargo__delete;
 
--- add subject id to district_embargo
-ALTER TABLE district_embargo
-    ADD COLUMN subject_id smallint,
-    DROP PRIMARY KEY;
+DROP TABLE IF EXISTS district_embargo;
+DROP TABLE IF EXISTS legacy_audit_district_embargo;
+RENAME TABLE audit_district_embargo TO legacy_audit_district_embargo;
 
 -- create reference table
+DROP TABLE IF EXISTS embargo_status;
 CREATE TABLE embargo_status (
     id tinyint NOT NULL PRIMARY KEY,
     name varchar(20) NOT NULL UNIQUE
@@ -32,21 +23,54 @@ INSERT INTO embargo_status (id, name) VALUES
 (1, 'Reviewing'),
 (2, 'Released');
 
--- Add foreign key constraints to subject_id and embargo status, and primary key to include
--- school_year, district_id, and subject_id
-ALTER TABLE district_embargo
-    ADD CONSTRAINT fk__district_embargo__subject FOREIGN KEY (subject_id) REFERENCES subject(id) ON DELETE CASCADE,
-    ADD INDEX idx__district_embargo__subject (subject_id),
-    ADD PRIMARY KEY(school_year, district_id, subject_id),
-    ADD CONSTRAINT fk__district_embargo__individual_status FOREIGN KEY (individual) REFERENCES embargo_status(id),
-    ADD CONSTRAINT fk__district_embargo__aggregate_status FOREIGN KEY (aggregate) REFERENCES embargo_status(id);
 
--- Backup old audit history and clear out current.
-CREATE TABLE legacy_audit_district_embargo SELECT * FROM audit_district_embargo;
+-- Crete new district embargo table
+CREATE TABLE district_embargo (
+     school_year smallint NOT NULL,
+    district_id int NOT NULL,
+    subject_id smallint default 0 NOT NULL,
+    individual tinyint NOT NULl,
+    aggregate tinyint NOT NULL,
+    updated timestamp(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL ON update CURRENT_TIMESTAMP(6),
+    updated_by varchar(255) null,
+    primary key (school_year, district_id, subject_id),
+    constraint fk__district_embargo__district
+        foreign key (district_id) references district (id)
+            on delete cascade,
+    constraint fk__district_embargo__individual_status
+        foreign key (individual) references embargo_status (id),
+     constraint fk__district_embargo__aggregate_status
+         foreign key (aggregate) references embargo_status (id),
+    constraint fk__district_embargo__subject
+        foreign key (subject_id) references subject (id)
+            on delete cascade
+);
 
--- Empty out old tables
-DELETE FROM district_embargo WHERE 1=1;
-DELETE FROM audit_district_embargo WHERE 1=1;
+create index idx__district_embargo__district on district_embargo (district_id);
+
+create index idx__district_embargo__subject on district_embargo (subject_id);
+
+-- Create new audit_district_embargo
+create table if not exists audit_district_embargo
+(
+    id bigint auto_increment
+        primary key,
+    action varchar(8) not null,
+    audited timestamp(6) default CURRENT_TIMESTAMP(6) not null,
+    database_user varchar(255) not null,
+    district_id int not null,
+    school_year smallint not null,
+    individual tinyint null,
+    aggregate tinyint null,
+    updated timestamp(6) not null,
+    updated_by varchar(255) null,
+    previous_individual tinyint null,
+    previous_aggregate tinyint null,
+    subject_id smallint null
+);
+
+create index idx__audit_district_embargo__district on audit_district_embargo (district_id);
+create index idx__audit_district_embargo__subject on audit_district_embargo (subject_id);
 
 -- Update triggers to handle new auditing logic
 CREATE TRIGGER trg__district_embargo__insert
