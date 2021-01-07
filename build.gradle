@@ -33,6 +33,8 @@ dependencies {
 flyway {
     // we started with flyway 4.2 so force flyway 5.x to use the legacy schema table
     table = 'schema_version'
+    // set out-of-order to true when there are schema changes from other routes, like tier-3 support.
+    outOfOrder = false
 }
 
 apply plugin: 'distribution'
