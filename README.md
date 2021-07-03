@@ -41,7 +41,7 @@ mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
 To determine the location of the my.cnf file, you can monitor for the usage of the file while restarting mysql. 
 Open two terminal windows. 
 In one do `sudo fs_usage | grep my.cnf`. 
-In the second terminal, `restart mysql: brew services restart mysql@5.6`. 
+In the second terminal, restart mysql: `brew services restart mysql@5.6`. 
 In the first window you'll see a number of locations being accessed, and one or more of these will actually exist. You can edit any of those.
 
 * Edit my.cnf and add the following lines:
